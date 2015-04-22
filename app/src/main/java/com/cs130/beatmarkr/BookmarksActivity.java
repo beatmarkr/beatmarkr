@@ -1,9 +1,11 @@
 package com.cs130.beatmarkr;
 
+import android.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 
 public class BookmarksActivity extends ActionBarActivity {
@@ -35,5 +37,10 @@ public class BookmarksActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void editBookmark(View view) {
+        DialogFragment editDialog = new EditDialog();
+        editDialog.show(getFragmentManager(), "edit");
     }
 }
