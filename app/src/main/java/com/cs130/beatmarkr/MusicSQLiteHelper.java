@@ -28,7 +28,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
     //might need synchronize or something for thread safety
-    public static MusicSQLiteHelper getMusicSQLiteHelper(Context context) {
+    public static MusicSQLiteHelper getInstance(Context context) {
         if (helper == null) {
             helper = new MusicSQLiteHelper(context);
             db = helper.getWritableDatabase();
@@ -42,13 +42,13 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
                 "CREATE TABLE " + MusicDBContract.MusicEntry.TABLE_NAME + " (" +
                         MusicDBContract.MusicEntry.COLUMN_MUSIC_ID + INT_TYPE + " PRIMARY KEY," +
                         MusicDBContract.MusicEntry.COLUMN_TITLE + TEXT_TYPE + COMMA +
-                        MusicDBContract.MusicEntry.COLUMN_ARTIST + TEXT_TYPE + COMMA +
+                        MusicDBContract.MusicEntry.COLUMN_ARTIST + TEXT_TYPE +
                 " )";
         String SQL_CREATE_BOOKMARKS_TABLE =
                 "CREATE TABLE " + MusicDBContract.BookmarkEntry.TABLE_NAME + " (" +
                         MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + INT_TYPE + " PRIMARY KEY," +
                         MusicDBContract.BookmarkEntry.COLUMN_DESC + TEXT_TYPE + COMMA +
-                        MusicDBContract.BookmarkEntry.COLUMN_TIME + INT_TYPE + COMMA +
+                        MusicDBContract.BookmarkEntry.COLUMN_TIME + INT_TYPE +
                         " )";
         db.execSQL(SQL_CREATE_MUSIC_TABLE);
         db.execSQL(SQL_CREATE_BOOKMARKS_TABLE);
@@ -82,7 +82,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     public void deleteMusicEntry(Song song) {
-        //TODO
+        //TODO: in deleting a song, also delete its bookmarks.
     }
 
     public void addBookmarkEntry(Bookmark bm) {

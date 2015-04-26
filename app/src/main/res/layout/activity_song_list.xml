@@ -18,4 +18,9 @@
         android:layout_height="wrap_content"
         android:onClick="selectSong" />
 
+    <ListView android:id="@+id/song_list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    </ListView>
+
 </LinearLayout>
