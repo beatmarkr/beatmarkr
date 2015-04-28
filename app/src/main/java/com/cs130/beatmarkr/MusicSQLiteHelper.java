@@ -46,10 +46,12 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
                 " )";
         String SQL_CREATE_BOOKMARKS_TABLE =
                 "CREATE TABLE " + MusicDBContract.BookmarkEntry.TABLE_NAME + " (" +
-                        MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + INT_TYPE + " PRIMARY KEY," +
+                        MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + INT_TYPE + COMMA +
                         MusicDBContract.BookmarkEntry.COLUMN_DESC + TEXT_TYPE + COMMA +
-                        MusicDBContract.BookmarkEntry.COLUMN_TIME + INT_TYPE +
-                        " )";
+                        MusicDBContract.BookmarkEntry.COLUMN_TIME + INT_TYPE + COMMA +
+                        " PRIMARY KEY (" + MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + COMMA +
+                                           MusicDBContract.BookmarkEntry.COLUMN_TIME + " )" +
+                " )";
         db.execSQL(SQL_CREATE_MUSIC_TABLE);
         db.execSQL(SQL_CREATE_BOOKMARKS_TABLE);
     }
@@ -70,30 +72,65 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     public void addMusicEntry(Song song) {
-
         ContentValues values = new ContentValues();
         values.put(MusicDBContract.MusicEntry.COLUMN_MUSIC_ID, song.getID());
         values.put(MusicDBContract.MusicEntry.COLUMN_TITLE, song.getTitle());
         values.put(MusicDBContract.MusicEntry.COLUMN_ARTIST, song.getArtist());
 
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId;
-        newRowId = db.insert(MusicDBContract.MusicEntry.TABLE_NAME,null,values);
+        // Insert the new row
+        db.insert(MusicDBContract.MusicEntry.TABLE_NAME,null,values);
     }
 
-    public void deleteMusicEntry(Song song) {
-        //TODO: in deleting a song, also delete its bookmarks.
+    /** Deleting a song also deletes all its bookmarks. */
+    public void deleteMusicEntry(long songId) {
+        deleteAllBookmarksForSong(songId);
+
+        String where = MusicDBContract.MusicEntry.COLUMN_MUSIC_ID + " = ?";
+        String[] whereArgs = { String.valueOf(songId) };
+        db.delete(MusicDBContract.MusicEntry.TABLE_NAME, where, whereArgs);
+        this.close();
     }
 
     public void addBookmarkEntry(Bookmark bm) {
-        //TODO
+        ContentValues values = new ContentValues();
+        values.put(MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID, bm.getMusicID());
+        values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, bm.getSeekTime());
+        values.put(MusicDBContract.BookmarkEntry.COLUMN_DESC, bm.getDescription());
+
+        // Insert the new row
+        db.insert(MusicDBContract.BookmarkEntry.TABLE_NAME,null,values);
     }
 
-    public void updateBookmarkEntry(Bookmark bm) {
-        //TODO
+    /** User can change seekTime and/or description only. Put null for nonnew values. */
+    public void updateBookmarkEntry(Bookmark bmOld, Long newSeekTime, String newDesc) {
+        ContentValues values = new ContentValues();
+        if (newSeekTime != null) {
+            values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, newSeekTime);
+        }
+        if (newDesc != null) {
+            values.put(MusicDBContract.BookmarkEntry.COLUMN_DESC, newDesc);
+        }
+
+        String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ? AND " +
+                MusicDBContract.BookmarkEntry.COLUMN_TIME + " = ?";
+        String[] whereArgs = { String.valueOf(bmOld.getMusicID()), String.valueOf(bmOld.getSeekTime()) };
+
+        db.update(MusicDBContract.BookmarkEntry.TABLE_NAME, values, where, whereArgs);
+        this.close();
     }
 
     public void deleteBookmarkEntry(Bookmark bm) {
-        //TODO
+        String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ? AND " +
+                       MusicDBContract.BookmarkEntry.COLUMN_TIME + " = ?";
+        String[] whereArgs = { String.valueOf(bm.getMusicID()), String.valueOf(bm.getSeekTime()) };
+        db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
+        this.close();
+    }
+
+    public void deleteAllBookmarksForSong(long songId) {
+        String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ?";
+        String[] whereArgs = { String.valueOf(songId) };
+        db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
+        this.close();
     }
 }
