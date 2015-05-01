@@ -3,6 +3,7 @@ package com.cs130.beatmarkr;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -78,7 +79,8 @@ public class SongListActivity extends ActionBarActivity {
 
     public void getSongList() {
 
-        MusicSQLiteHelper database = MusicSQLiteHelper.getInstance(getApplicationContext());
+        MusicSQLiteHelper helper = MusicSQLiteHelper.getInstance(getApplicationContext());
+        SQLiteDatabase db = helper.getWritableDatabase();
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
@@ -94,11 +96,11 @@ public class SongListActivity extends ActionBarActivity {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                database.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
+                helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist), db);
                 songList.add(new Song(thisId, thisTitle, thisArtist));
             }
             while (musicCursor.moveToNext());
-            database.close();
+            db.close();
         }
     }
 }

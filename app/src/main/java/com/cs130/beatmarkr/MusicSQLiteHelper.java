@@ -7,13 +7,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 /**
  * Created by Alina on 4/23/2015.
- * This is a Singleton class.
+ * This is a Singleton class. In using this class, when calling database modification functions,
+ * you must call SQLiteDatabase db = helper.getWritableDatabase();
+ * <function(s)>
+ * db.close();
+ * Where helper = MusicSQLiteHelper.getInstance().
  */
 
 public class MusicSQLiteHelper extends SQLiteOpenHelper {
 
     private static MusicSQLiteHelper helper;
-    private static SQLiteDatabase db;
 
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 1;
@@ -31,7 +34,6 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     public static MusicSQLiteHelper getInstance(Context context) {
         if (helper == null) {
             helper = new MusicSQLiteHelper(context);
-            db = helper.getWritableDatabase();
         }
         return helper;
     }
@@ -64,14 +66,9 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         //onCreate(db);
     }
 
-    /** Call this function when you're done writing. */
-    @Override
-    public synchronized void close() {
-        if (helper != null)
-            db.close();
-    }
-
-    public void addMusicEntry(Song song) {
+    /** Modification functions ********************************************/
+    /*  These require a writable database. */
+    public void addMusicEntry(Song song, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(MusicDBContract.MusicEntry.COLUMN_MUSIC_ID, song.getID());
         values.put(MusicDBContract.MusicEntry.COLUMN_TITLE, song.getTitle());
@@ -82,16 +79,15 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     /** Deleting a song also deletes all its bookmarks. */
-    public void deleteMusicEntry(long songId) {
-        deleteAllBookmarksForSong(songId);
+    public void deleteMusicEntry(long songId, SQLiteDatabase db) {
+        deleteAllBookmarksForSong(songId, db);
 
         String where = MusicDBContract.MusicEntry.COLUMN_MUSIC_ID + " = ?";
         String[] whereArgs = { String.valueOf(songId) };
         db.delete(MusicDBContract.MusicEntry.TABLE_NAME, where, whereArgs);
-        this.close();
     }
 
-    public void addBookmarkEntry(Bookmark bm) {
+    public void addBookmarkEntry(Bookmark bm, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put(MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID, bm.getMusicID());
         values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, bm.getSeekTime());
@@ -102,7 +98,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     /** User can change seekTime and/or description only. Put null for nonnew values. */
-    public void updateBookmarkEntry(Bookmark bmOld, Long newSeekTime, String newDesc) {
+    public void updateBookmarkEntry(Bookmark bmOld, Long newSeekTime, String newDesc, SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         if (newSeekTime != null) {
             values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, newSeekTime);
@@ -116,21 +112,115 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         String[] whereArgs = { String.valueOf(bmOld.getMusicID()), String.valueOf(bmOld.getSeekTime()) };
 
         db.update(MusicDBContract.BookmarkEntry.TABLE_NAME, values, where, whereArgs);
-        this.close();
     }
 
-    public void deleteBookmarkEntry(Bookmark bm) {
+    public void deleteBookmarkEntry(Bookmark bm, SQLiteDatabase db) {
         String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ? AND " +
                        MusicDBContract.BookmarkEntry.COLUMN_TIME + " = ?";
         String[] whereArgs = { String.valueOf(bm.getMusicID()), String.valueOf(bm.getSeekTime()) };
         db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
-        this.close();
     }
 
-    public void deleteAllBookmarksForSong(long songId) {
+    public void deleteAllBookmarksForSong(long songId, SQLiteDatabase db) {
         String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ?";
         String[] whereArgs = { String.valueOf(songId) };
         db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
-        this.close();
+    }
+
+    /** Query functions ********************************************/
+    /*  These require a readable database. */
+
+    /** Search songs by song title keywords.
+     *  Null keywords will return all songs. */
+    public Cursor queryMusic(String [] keywords, SQLiteDatabase db) {
+        String[] projection = { //return values
+                MusicDBContract.MusicEntry.COLUMN_MUSIC_ID,
+                MusicDBContract.MusicEntry.COLUMN_TITLE,
+                MusicDBContract.MusicEntry.COLUMN_ARTIST
+        };
+
+        String sortOrder =
+                MusicDBContract.MusicEntry.COLUMN_TITLE + " DESC";
+
+        String where = null;
+        if (keywords.length > 0) {
+            where = "";
+            for (int i = 0; i < keywords.length - 1; i++) {
+                where += MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ?% AND ";
+            }
+            where += MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ?%";
+        }
+
+        Cursor c = db.query(
+                MusicDBContract.MusicEntry.TABLE_NAME,    // The table to query
+                projection,                               // The columns to return
+                where,                                    // The columns for the WHERE clause
+                keywords,                                 // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                sortOrder                                 // The sort order
+        );
+        return c;
+    }
+
+    /** Search bookmarks by song and description.
+     *  First string in descWords must be the musicID of the song. The rest are words in the
+     *  description.
+     *  If there is only 1 element in descWords, it will return all bookmarks for that song. */
+    public Cursor queryBookmarks(String [] descWords, SQLiteDatabase db) {
+        String[] projection = { //return values
+                MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID,
+                MusicDBContract.BookmarkEntry.COLUMN_TIME,
+                MusicDBContract.BookmarkEntry.COLUMN_DESC
+        };
+
+        String sortOrder =
+                MusicDBContract.BookmarkEntry.COLUMN_TIME + " DESC";
+
+        String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ?";
+        if (descWords.length > 1) {
+            for (int i = 1; i < descWords.length; i++) {
+                where += " AND " + MusicDBContract.BookmarkEntry.COLUMN_DESC + " LIKE ?%";
+            }
+        }
+
+        Cursor c = db.query(
+                MusicDBContract.BookmarkEntry.TABLE_NAME,    // The table to query
+                projection,                               // The columns to return
+                where,                                    // The columns for the WHERE clause
+                descWords,                                 // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                sortOrder                                 // The sort order
+        );
+        return c;
+    }
+
+    /** Returns all bookmarks with a seekTime in the range [start, end] for a given song. */
+    public Cursor queryBookmarksByRange(long musicId, long start, long end, SQLiteDatabase db) {
+        String[] projection = { //return values
+                MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID,
+                MusicDBContract.BookmarkEntry.COLUMN_TIME,
+                MusicDBContract.BookmarkEntry.COLUMN_DESC
+        };
+
+        String sortOrder =
+                MusicDBContract.BookmarkEntry.COLUMN_TIME + " DESC";
+
+        String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ? AND " +
+                       MusicDBContract.BookmarkEntry.COLUMN_TIME + " >= ? AND " +
+                       MusicDBContract.BookmarkEntry.COLUMN_TIME + "<= ?";
+        String [] whereArgs = {String.valueOf(musicId), String.valueOf(start), String.valueOf(end)};
+
+        Cursor c = db.query(
+                MusicDBContract.BookmarkEntry.TABLE_NAME,    // The table to query
+                projection,                               // The columns to return
+                where,                                    // The columns for the WHERE clause
+                whereArgs,                                 // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                sortOrder                                 // The sort order
+        );
+        return c;
     }
 }
