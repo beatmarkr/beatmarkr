@@ -79,8 +79,7 @@ public class SongListActivity extends ActionBarActivity {
 
     public void getSongList() {
 
-        MusicSQLiteHelper helper = MusicSQLiteHelper.getInstance(getApplicationContext());
-        SQLiteDatabase db = helper.getWritableDatabase();
+        Storage helper = MusicSQLiteHelper.getInstance(getApplicationContext());
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
@@ -96,11 +95,12 @@ public class SongListActivity extends ActionBarActivity {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist), db);
+                helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
                 songList.add(new Song(thisId, thisTitle, thisArtist));
             }
             while (musicCursor.moveToNext());
-            db.close();
+            musicCursor.close();
+            helper.close();
         }
     }
 }

@@ -8,15 +8,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 /**
  * Created by Alina on 4/23/2015.
  * This is a Singleton class. In using this class, when calling database modification functions,
- * you must call SQLiteDatabase db = helper.getWritableDatabase();
- * <function(s)>
- * db.close();
- * Where helper = MusicSQLiteHelper.getInstance().
+ * you must call
+ * helper.close();
+ * Where helper is your reference to MusicSQLiteHelper.getInstance(). The database will be open upon
  */
 
-public class MusicSQLiteHelper extends SQLiteOpenHelper {
+public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
 
     private static MusicSQLiteHelper helper;
+    private static SQLiteDatabase db;
 
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 1;
@@ -34,6 +34,10 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     public static MusicSQLiteHelper getInstance(Context context) {
         if (helper == null) {
             helper = new MusicSQLiteHelper(context);
+            db = helper.getWritableDatabase();
+        }
+        if (!db.isOpen()) {
+            db = helper.getWritableDatabase();
         }
         return helper;
     }
@@ -66,9 +70,17 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         //onCreate(db);
     }
 
+    /** Call this function when you're done with the database.
+     *  This will invalidate any open Cursors. */
+    @Override
+    public synchronized void close() {
+        if (helper != null)
+            db.close();
+    }
+
     /** Modification functions ********************************************/
     /*  These require a writable database. */
-    public void addMusicEntry(Song song, SQLiteDatabase db) {
+    public void addMusicEntry(Song song) {
         ContentValues values = new ContentValues();
         values.put(MusicDBContract.MusicEntry.COLUMN_MUSIC_ID, song.getID());
         values.put(MusicDBContract.MusicEntry.COLUMN_TITLE, song.getTitle());
@@ -79,15 +91,15 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     /** Deleting a song also deletes all its bookmarks. */
-    public void deleteMusicEntry(long songId, SQLiteDatabase db) {
-        deleteAllBookmarksForSong(songId, db);
+    public void deleteMusicEntry(long songId) {
+        deleteAllBookmarksForSong(songId);
 
         String where = MusicDBContract.MusicEntry.COLUMN_MUSIC_ID + " = ?";
         String[] whereArgs = { String.valueOf(songId) };
         db.delete(MusicDBContract.MusicEntry.TABLE_NAME, where, whereArgs);
     }
 
-    public void addBookmarkEntry(Bookmark bm, SQLiteDatabase db) {
+    public void addBookmarkEntry(Bookmark bm) {
         ContentValues values = new ContentValues();
         values.put(MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID, bm.getMusicID());
         values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, bm.getSeekTime());
@@ -97,8 +109,8 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         db.insert(MusicDBContract.BookmarkEntry.TABLE_NAME,null,values);
     }
 
-    /** User can change seekTime and/or description only. Put null for nonnew values. */
-    public void updateBookmarkEntry(Bookmark bmOld, Long newSeekTime, String newDesc, SQLiteDatabase db) {
+    /** User can change seekTime and/or description only. Put null for unchanged values. */
+    public void updateBookmarkEntry(Bookmark bmOld, Long newSeekTime, String newDesc) {
         ContentValues values = new ContentValues();
         if (newSeekTime != null) {
             values.put(MusicDBContract.BookmarkEntry.COLUMN_TIME, newSeekTime);
@@ -114,14 +126,14 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
         db.update(MusicDBContract.BookmarkEntry.TABLE_NAME, values, where, whereArgs);
     }
 
-    public void deleteBookmarkEntry(Bookmark bm, SQLiteDatabase db) {
+    public void deleteBookmarkEntry(Bookmark bm) {
         String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ? AND " +
                        MusicDBContract.BookmarkEntry.COLUMN_TIME + " = ?";
         String[] whereArgs = { String.valueOf(bm.getMusicID()), String.valueOf(bm.getSeekTime()) };
         db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
     }
 
-    public void deleteAllBookmarksForSong(long songId, SQLiteDatabase db) {
+    public void deleteAllBookmarksForSong(long songId) {
         String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ?";
         String[] whereArgs = { String.valueOf(songId) };
         db.delete(MusicDBContract.BookmarkEntry.TABLE_NAME, where, whereArgs);
@@ -132,7 +144,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
 
     /** Search songs by song title keywords.
      *  Null keywords will return all songs. */
-    public Cursor queryMusic(String [] keywords, SQLiteDatabase db) {
+    public Cursor queryMusic(String [] keywords) {
         String[] projection = { //return values
                 MusicDBContract.MusicEntry.COLUMN_MUSIC_ID,
                 MusicDBContract.MusicEntry.COLUMN_TITLE,
@@ -167,7 +179,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
      *  First string in descWords must be the musicID of the song. The rest are words in the
      *  description.
      *  If there is only 1 element in descWords, it will return all bookmarks for that song. */
-    public Cursor queryBookmarks(String [] descWords, SQLiteDatabase db) {
+    public Cursor queryBookmarks(String [] descWords) {
         String[] projection = { //return values
                 MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID,
                 MusicDBContract.BookmarkEntry.COLUMN_TIME,
@@ -197,7 +209,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper {
     }
 
     /** Returns all bookmarks with a seekTime in the range [start, end] for a given song. */
-    public Cursor queryBookmarksByRange(long musicId, long start, long end, SQLiteDatabase db) {
+    public Cursor queryBookmarksByRange(long musicId, long start, long end) {
         String[] projection = { //return values
                 MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID,
                 MusicDBContract.BookmarkEntry.COLUMN_TIME,
