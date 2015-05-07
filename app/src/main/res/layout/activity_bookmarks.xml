@@ -12,7 +12,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button android:text="Edit"
+    <Button android:id="@+id/edit_button"
+        android:text="Edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="editBookmark" />

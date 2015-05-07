@@ -4,4 +4,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_bookmarks">BookmarksActivity</string>
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
 </resources>
