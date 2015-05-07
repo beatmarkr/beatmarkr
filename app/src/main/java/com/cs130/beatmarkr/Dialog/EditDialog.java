@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.DialogInterface;
 
 /**
- * Created by Sub Zero on 5/6/15.
+ * Created by Justin on 5/6/15.
  */
 public class EditDialog extends GenericDialog {
     private String[] editList = {"Adjust Time", "Rename", "Delete"};
