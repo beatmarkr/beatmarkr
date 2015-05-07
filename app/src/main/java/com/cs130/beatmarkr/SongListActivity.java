@@ -1,26 +1,37 @@
 package com.cs130.beatmarkr;
 
+import android.app.SearchManager;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.app.Activity;
+import android.widget.SearchView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 
-public class SongListActivity extends ActionBarActivity {
+public class SongListActivity extends Activity implements SearchView.OnQueryTextListener {
     private ArrayList<Song> songList; //List of songs displayed in alphabetical order
     private ListView songView;
+    private SearchView searchView;
+    private SongAdapter songAdt;
+    private MenuItem searchItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,8 +48,18 @@ public class SongListActivity extends ActionBarActivity {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
-        SongAdapter songAdt = new SongAdapter(this, songList);
+        songAdt = new SongAdapter(this, songList);
         songView.setAdapter(songAdt);
+
+        // Set up item selection listener
+        /*songView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position>0 && position <= songList.size()) {
+                    handleListItemClick((Song)songAdt.getItem(position-1));
+                }
+            }
+        });*/
     }
 
 
@@ -46,6 +67,16 @@ public class SongListActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_song_list, menu);
+
+        // Set up SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchItem = menu.findItem(R.id.search_songs);
+        searchView = (SearchView) searchItem.getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        //searchView.setIconifiedByDefault(false);
+        //searchView.setSubmitButtonEnabled(true);
+        searchView.setOnQueryTextListener(this);
+
         return true;
     }
 
@@ -64,7 +95,7 @@ public class SongListActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void selectSong(View view) {
+    public void songPicked(View view) {
         Intent intent = new Intent(this, BookmarksActivity.class);
         startActivity(intent);
     }
@@ -102,5 +133,28 @@ public class SongListActivity extends ActionBarActivity {
             musicCursor.close();
             helper.close();
         }
+    }
+
+    private void handleListItemClick(Song song) {
+        // Collapse and clear SearchView
+        if(searchView.isShown()) {
+            searchItem.collapseActionView();
+            searchView.setQuery("",false);
+        }
+
+        // Transition screen
+        Intent intent = new Intent(this, BookmarksActivity.class);
+        startActivity(intent);
+    }
+
+   @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        songAdt.getFilter().filter(newText);
+        return true;
     }
 }

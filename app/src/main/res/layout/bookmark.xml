@@ -4,10 +4,10 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="5dp"
-    android:onClick="songPicked">
+    android:onClick="editBookmark">
 
     <TextView
-        android:id="@+id/song_title"
+        android:id="@+id/bm_desc"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/abc_primary_text_material_dark"
@@ -19,7 +19,7 @@
         android:textColorHighlight="@color/highlighted_text_material_dark" />
 
     <TextView
-        android:id="@+id/song_artist"
+        android:id="@+id/bm_time"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/abc_secondary_text_material_dark"
@@ -27,7 +27,6 @@
         style="@style/AppTheme"
         android:textColorHighlight="@color/highlighted_text_material_dark"
         android:textColorHint="@color/hint_foreground_material_dark"
-        android:textColorLink="@color/link_text_material_dark"
-        android:theme="@style/AppTheme" />
+        android:textColorLink="@color/link_text_material_dark" />
 
 </LinearLayout>
