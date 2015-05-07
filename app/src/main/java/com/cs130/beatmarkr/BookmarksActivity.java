@@ -1,19 +1,28 @@
 package com.cs130.beatmarkr;
 
+import android.media.AudioManager;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.media.MediaPlayer;
 
 import com.cs130.beatmarkr.Dialog.EditDialog;
 
 public class BookmarksActivity extends ActionBarActivity {
+    //private TrackInfo[] tinfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bookmarks);
+
+        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
 
