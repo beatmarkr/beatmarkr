@@ -1,5 +1,6 @@
 package com.cs130.beatmarkr;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -15,16 +17,22 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import android.widget.MediaController.MediaPlayerControl;
+import android.widget.TextView;
+
+import com.cs130.beatmarkr.Dialog.EditDialog;
 import com.cs130.beatmarkr.MusicService.MusicBinder;
 
-public class SongListActivity extends ActionBarActivity implements MediaPlayerControl {
+public class SongListActivity extends Activity implements MediaPlayerControl {
     private ArrayList<Song> songList; //List of songs displayed in alphabetical order
     private ListView songView;
     private SongAdapter songAdt;
@@ -36,6 +44,13 @@ public class SongListActivity extends ActionBarActivity implements MediaPlayerCo
     private MusicController controller;
     private boolean paused = false;
     private boolean playbackPaused = false;
+
+    private ArrayList<Bookmark> bmList;
+    private ListView bmListView;
+    private BookmarkAdapter bmAdt;
+
+    private Button bookmarkButton;
+    private TextView bookmarkTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +92,7 @@ public class SongListActivity extends ActionBarActivity implements MediaPlayerCo
                 setContentView(R.layout.activity_song_list);
                 songView = (ListView)findViewById(R.id.song_list);
                 songView.setAdapter(songAdt);
-                controller.hide();
+                controller.setAnchorView(findViewById(R.id.song_list));
                 break;
             case R.id.action_close:
                 stopService(playIntent);
@@ -93,11 +108,6 @@ public class SongListActivity extends ActionBarActivity implements MediaPlayerCo
         return super.onOptionsItemSelected(item);
     }
 
-    public void selectSong(View view) {
-        Intent intent = new Intent(this, BookmarksActivity.class);
-        startActivity(intent);
-    }
-
     public void songPicked(View view){
         musicSrv.setSong(Integer.parseInt(view.getTag().toString()));
         musicSrv.playSong();
@@ -108,8 +118,51 @@ public class SongListActivity extends ActionBarActivity implements MediaPlayerCo
         }
 
         setContentView(R.layout.activity_bookmarks);
-        controller.setAnchorView(findViewById(android.R.id.content));
+
+        // Dummy bookmarks
+        bmListView = (ListView)findViewById(R.id.bm_list);
+        if (bmList == null) {
+            bmList = new ArrayList<Bookmark>();
+            bmList.add(new Bookmark(0, 0, "Start"));
+            bmList.add(new Bookmark(0, 0, "End"));
+            bmAdt = new BookmarkAdapter(this, bmList);
+        }
+
+        bmListView.setAdapter(bmAdt);
+
+        //controller.setAnchorView(findViewById(android.R.id.content));
+        controller.setAnchorView(findViewById(R.id.player_view));
         controller.show(0);
+
+        bookmarkButton = (Button)this.findViewById(R.id.bookmarkButton);
+        bookmarkTime = (TextView)this.findViewById(R.id.timestamp);
+
+        bookmarkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Random rnd = new Random();
+                int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                bookmarkButton.setBackgroundColor(color);
+
+                int millis = getCurrentPosition();
+
+                String mstring = String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(millis),
+                        TimeUnit.MILLISECONDS.toSeconds(millis) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+                );
+
+                bookmarkTime.setText("Last bookmark: " + mstring);
+                //bookmarkTime.setText(Integer.toString(musicSrv.getSongPos()));
+                //create bookmark using Bookmark class here
+            }
+        });
+        bookmarkButton.setVisibility(View.VISIBLE);
+    }
+
+    public void editBookmark(View view) {
+        EditDialog edit = new EditDialog(this);
+        edit.createDialog();
     }
 
     /** Called each time the app is opened. It updates the database's songs by getting the list of
@@ -167,12 +220,14 @@ public class SongListActivity extends ActionBarActivity implements MediaPlayerCo
     @Override
     public void start() {
         musicSrv.go();
+        bookmarkButton.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void pause() {
         playbackPaused = true;
         musicSrv.pausePlayer();
+        bookmarkButton.setVisibility(View.INVISIBLE);
     }
 
     @Override

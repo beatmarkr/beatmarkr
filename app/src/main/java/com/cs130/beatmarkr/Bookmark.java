@@ -25,4 +25,6 @@ public class Bookmark {
     public String getDescription() {
         return description;
     }
+
+    public String getSeekTimeString() { return String.valueOf(seekTime); }
 }
