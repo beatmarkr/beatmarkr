@@ -19,7 +19,7 @@ import java.util.Comparator;
 
 
 public class SongListActivity extends ActionBarActivity {
-    private ArrayList<Song> songList; //List of songs displayed in alphabetical order
+    public static ArrayList<Song> songList; //List of songs displayed in alphabetical order
     private ListView songView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +64,9 @@ public class SongListActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void selectSong(View view) {
+    public void songPicked(View view) {
         Intent intent = new Intent(this, BookmarksActivity.class);
+        intent.putExtra("KEY_SONG_POS", Integer.parseInt(view.getTag().toString()));
         startActivity(intent);
     }
 
