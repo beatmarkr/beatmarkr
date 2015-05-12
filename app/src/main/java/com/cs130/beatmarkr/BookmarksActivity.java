@@ -1,30 +1,37 @@
 package com.cs130.beatmarkr;
 
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.cs130.beatmarkr.Dialog.EditDialog;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class BookmarksActivity extends ActionBarActivity {
+public class BookmarksActivity extends Activity {
     public TextView songName, duration;
+    private Song song;
     private int songPos;
     private MediaPlayer mediaPlayer;
     private double timeElapsed = 0, finalTime = 0;
     private int forwardTime = 2000, backwardTime = 2000;
     private Handler durationHandler = new Handler();
     private SeekBar seekbar;
+
+    private ArrayList<Bookmark> bmList;
+    private ListView bmListView;
+    private BookmarkAdapter bmAdt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +40,10 @@ public class BookmarksActivity extends ActionBarActivity {
 
         Intent intent = getIntent();
         songPos = intent.getIntExtra("KEY_SONG_POS", 0);
+        song = SongListActivity.SONG_LIST.get(songPos);
 
         initializeViews();
+        getBookmarksList();
         play(findViewById(android.R.id.content));
     }
 
@@ -69,16 +78,11 @@ public class BookmarksActivity extends ActionBarActivity {
         durationHandler = null;
     }
 
-    public void editBookmark(View view) {
-        EditDialog edit = new EditDialog(this);
-        edit.createDialog();
-    }
-
     public void initializeViews() {
         songName = (TextView)findViewById(R.id.songName);
         duration = (TextView)findViewById(R.id.songDuration);
         seekbar = (SeekBar)findViewById(R.id.seekBar);
-        Song song = SongListActivity.songList.get(songPos);
+
 
         long songID = song.getID();
         Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songID);
@@ -88,7 +92,9 @@ public class BookmarksActivity extends ActionBarActivity {
 
         songName.setText(song.getTitle());
         duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long)finalTime),
-                TimeUnit.MILLISECONDS.toSeconds((long)finalTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long)finalTime))));
+                TimeUnit.MILLISECONDS.toSeconds((long)finalTime) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long)finalTime)))
+        );
         seekbar.setMax((int) finalTime);
         seekbar.setClickable(false);
     }
@@ -113,7 +119,9 @@ public class BookmarksActivity extends ActionBarActivity {
             // Set time remaining
             double timeRemaining = finalTime - timeElapsed;
             duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long)timeRemaining),
-                    TimeUnit.MILLISECONDS.toSeconds((long)timeRemaining) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long)timeRemaining))));
+                    TimeUnit.MILLISECONDS.toSeconds((long)timeRemaining) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long)timeRemaining)))
+            );
 
             // Repeat yourself that again in 100 miliseconds
             durationHandler.postDelayed(this, 100);
@@ -148,5 +156,32 @@ public class BookmarksActivity extends ActionBarActivity {
 
         // Seek to the exact second of the track
         mediaPlayer.seekTo((int)timeElapsed);
+    }
+
+    public void editBookmark(View view) {
+        int bm_pos = Integer.parseInt(view.getTag().toString());
+
+        EditDialog edit = new EditDialog(this);
+        edit.createDialog();
+    }
+
+    public void getBookmarksList() {
+        bmListView = (ListView)findViewById(R.id.bm_list);
+        bmList = new ArrayList<Bookmark>();
+
+        // Add start and end bookmarks if they don't exist already
+        bmList.add(new Bookmark(song.getID(), 0, "Start"));
+        bmList.add(new Bookmark(song.getID(), mediaPlayer.getDuration(), "End"));
+
+        bmAdt = new BookmarkAdapter(this, bmList);
+        bmListView.setAdapter(bmAdt);
+    }
+
+    public void newBookmark(View view) {
+        int bmTime = mediaPlayer.getCurrentPosition();
+
+        bmList.add(new Bookmark(song.getID(), bmTime, "New Bookmark"));
+        bmAdt.notifyDataSetChanged();
+        bmListView.setSelection(bmList.size()-1);
     }
 }

@@ -1,5 +1,7 @@
 package com.cs130.beatmarkr;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Alina on 4/23/2015.
  */
@@ -24,5 +26,15 @@ public class Bookmark {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getSeekTimeString() {
+        String formatString = String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(seekTime),
+                TimeUnit.MILLISECONDS.toSeconds(seekTime) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(seekTime))
+        );
+
+        return formatString;
     }
 }

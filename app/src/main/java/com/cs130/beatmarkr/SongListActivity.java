@@ -1,12 +1,12 @@
 package com.cs130.beatmarkr;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,8 +18,8 @@ import java.util.Collections;
 import java.util.Comparator;
 
 
-public class SongListActivity extends ActionBarActivity {
-    public static ArrayList<Song> songList; //List of songs displayed in alphabetical order
+public class SongListActivity extends Activity {
+    public static ArrayList<Song> SONG_LIST; //List of songs displayed in alphabetical order
     private ListView songView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,17 +27,17 @@ public class SongListActivity extends ActionBarActivity {
         setContentView(R.layout.activity_song_list);
 
         songView = (ListView)findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
+        SONG_LIST = new ArrayList<Song>();
 
         getSongList(); //see function for To Do
 
         // Sort the songs alphabetically
-        Collections.sort(songList, new Comparator<Song>() {
+        Collections.sort(SONG_LIST, new Comparator<Song>() {
             public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
-        SongAdapter songAdt = new SongAdapter(this, songList);
+        SongAdapter songAdt = new SongAdapter(this, SONG_LIST);
         songView.setAdapter(songAdt);
     }
 
@@ -97,7 +97,7 @@ public class SongListActivity extends ActionBarActivity {
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
                 helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
-                songList.add(new Song(thisId, thisTitle, thisArtist));
+                SONG_LIST.add(new Song(thisId, thisTitle, thisArtist));
             }
             while (musicCursor.moveToNext());
             musicCursor.close();

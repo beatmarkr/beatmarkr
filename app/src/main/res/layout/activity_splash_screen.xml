@@ -9,6 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/bm_logo_v4_small"
-        android:background="@color/background_material_dark" />
+        android:background="@color/background_material_dark"
+        android:contentDescription="@string/app_name" />
 
 </LinearLayout>
