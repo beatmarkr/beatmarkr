@@ -10,16 +10,16 @@ import android.content.DialogInterface;
 public abstract class GenericDialog {
     Activity activity;
     AlertDialog.Builder builder;
+    AlertDialog editDialog;
     public DialogInterface.OnClickListener cancelButton = new CancelButton();
 
     public final void createDialog() {
         getBuilder();
         setCustomView();
-        configureDialog();
+        setContents();
         showDialog();
+        configureDialog();
     }
-
-    abstract void configureDialog();
 
     final void getBuilder() {
         builder = new AlertDialog.Builder(activity);
@@ -27,10 +27,14 @@ public abstract class GenericDialog {
 
     void setCustomView() {}
 
+    abstract void setContents();
+
     final void showDialog() {
-        AlertDialog editDialog = builder.create();
+        editDialog = builder.create();
         editDialog.show();
     }
+
+    void configureDialog() {}
 
     public class CancelButton implements DialogInterface.OnClickListener {
 

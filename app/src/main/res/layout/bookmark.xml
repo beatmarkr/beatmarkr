@@ -1,30 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="5dp"
-    android:onClick="editBookmark">
+    android:onClick="playBookmark">
 
-    <TextView android:id="@+id/bm_desc"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/abc_primary_text_material_dark"
-        android:textSize="18sp"
-        style="@style/AppTheme"
-        android:theme="@style/AppTheme"
-        android:textColorLink="@color/link_text_material_dark"
-        android:textColorHint="@color/hint_foreground_material_dark"
-        android:textColorHighlight="@color/highlighted_text_material_dark" />
+        android:orientation="vertical"
+        android:layout_weight="1">
 
-    <TextView android:id="@+id/bm_time"
-        android:layout_width="fill_parent"
+        <TextView android:id="@+id/bm_desc"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/abc_primary_text_material_dark"
+            android:textSize="18sp"
+            style="@style/AppTheme"
+            android:theme="@style/AppTheme"
+            android:textColorLink="@color/link_text_material_dark"
+            android:textColorHint="@color/hint_foreground_material_dark"
+            android:textColorHighlight="@color/highlighted_text_material_dark" />
+
+        <TextView android:id="@+id/bm_time"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/abc_secondary_text_material_dark"
+            android:textSize="14sp"
+            style="@style/AppTheme"
+            android:textColorHighlight="@color/highlighted_text_material_dark"
+            android:textColorHint="@color/hint_foreground_material_dark"
+            android:textColorLink="@color/link_text_material_dark" />
+    </LinearLayout>
+
+    <Button android:id="@+id/edit_button"
+        android:text="Edit"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/abc_secondary_text_material_dark"
-        android:textSize="14sp"
-        style="@style/AppTheme"
-        android:textColorHighlight="@color/highlighted_text_material_dark"
-        android:textColorHint="@color/hint_foreground_material_dark"
-        android:textColorLink="@color/link_text_material_dark" />
+        android:onClick="editBookmark" />
 
 </LinearLayout>

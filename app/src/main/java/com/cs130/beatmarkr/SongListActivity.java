@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,34 +14,39 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.cs130.beatmarkr.Settings.SettingsActivity;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 
 public class SongListActivity extends Activity {
-    public static ArrayList<Song> SONG_LIST; //List of songs displayed in alphabetical order
+    private static ArrayList<Song> songList; //List of songs displayed in alphabetical order
     private ListView songView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
 
         songView = (ListView)findViewById(R.id.song_list);
-        SONG_LIST = new ArrayList<Song>();
+        songList = new ArrayList<Song>();
 
-        getSongList(); //see function for To Do
+        getSongs(); //see function for To Do
 
         // Sort the songs alphabetically
-        Collections.sort(SONG_LIST, new Comparator<Song>() {
+        Collections.sort(songList, new Comparator<Song>() {
             public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
-        SongAdapter songAdt = new SongAdapter(this, SONG_LIST);
-        songView.setAdapter(songAdt);
-    }
 
+        SongAdapter songAdt = new SongAdapter(this, songList);
+        songView.setAdapter(songAdt);
+
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -58,12 +64,15 @@ public class SongListActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    // Called when selecting a song from the list
     public void songPicked(View view) {
         Intent intent = new Intent(this, BookmarksActivity.class);
         intent.putExtra("KEY_SONG_POS", Integer.parseInt(view.getTag().toString()));
@@ -78,8 +87,7 @@ public class SongListActivity extends Activity {
      * by music ID).
      */
 
-    public void getSongList() {
-
+    private void getSongs() {
         Storage helper = MusicSQLiteHelper.getInstance(getApplicationContext());
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -97,11 +105,16 @@ public class SongListActivity extends Activity {
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
                 helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
-                SONG_LIST.add(new Song(thisId, thisTitle, thisArtist));
+                songList.add(new Song(thisId, thisTitle, thisArtist));
             }
             while (musicCursor.moveToNext());
             musicCursor.close();
             helper.close();
         }
+    }
+
+    // Getter method to use in BookmarksActivity
+    public static ArrayList<Song> getSongList() {
+        return songList;
     }
 }

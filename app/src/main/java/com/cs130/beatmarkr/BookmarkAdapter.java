@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -46,6 +47,7 @@ public class BookmarkAdapter extends BaseAdapter {
         // Get title and artist views
         TextView descView = (TextView)bmLayout.findViewById(R.id.bm_desc);
         TextView timeView = (TextView)bmLayout.findViewById(R.id.bm_time);
+        Button buttonView = (Button)bmLayout.findViewById(R.id.edit_button);
 
         // Get song using position
         Bookmark currBm = bmList.get(position);
@@ -56,6 +58,7 @@ public class BookmarkAdapter extends BaseAdapter {
 
         // Set position as tag
         bmLayout.setTag(position);
+        buttonView.setTag(position);
 
         return bmLayout;
     }

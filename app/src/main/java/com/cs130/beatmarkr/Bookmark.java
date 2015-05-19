@@ -37,4 +37,12 @@ public class Bookmark {
 
         return formatString;
     }
+
+    public void setSeekTime(long time) {
+        seekTime = time;
+    }
+
+    public void setDescription(String s) {
+        description = s;
+    }
 }

@@ -8,13 +8,15 @@ import android.content.DialogInterface;
  */
 public class EditDialog extends GenericDialog {
     private String[] editList = {"Adjust Time", "Rename", "Delete"};
+    int position;
 
-    public EditDialog(Activity a) {
+    public EditDialog(Activity a, int pos) {
         activity = a;
+        position = pos;
     }
 
     @Override
-    void configureDialog() {
+    void setContents() {
         builder.setTitle("Edit")
                 .setItems(editList, new DialogInterface.OnClickListener() {
 
@@ -22,15 +24,15 @@ public class EditDialog extends GenericDialog {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                AdjustTimeDialog adjustTime = new AdjustTimeDialog(activity);
+                                AdjustTimeDialog adjustTime = new AdjustTimeDialog(activity, position);
                                 adjustTime.createDialog();
                                 break;
                             case 1:
-                                RenameDialog rename = new RenameDialog(activity);
+                                RenameDialog rename = new RenameDialog(activity, position);
                                 rename.createDialog();
                                 break;
                             case 2:
-                                DeleteDialog delete = new DeleteDialog(activity);
+                                DeleteDialog delete = new DeleteDialog(activity, position);
                                 delete.createDialog();
                                 break;
                             default:
