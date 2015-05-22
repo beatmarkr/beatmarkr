@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
+import android.widget.SeekBar.OnSeekBarChangeListener;
+
 public class BookmarksActivity extends Activity {
     private TextView songName, duration, bmLoopStartText, bmLoopEndText;
     private Song song;
@@ -108,6 +110,32 @@ public class BookmarksActivity extends Activity {
         songName = (TextView)findViewById(R.id.songName);
         duration = (TextView)findViewById(R.id.songDuration);
         seekbar = (SeekBar)findViewById(R.id.seekBar);
+        seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int prog = seekBar.getProgress();
+
+                duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(prog),
+                                TimeUnit.MILLISECONDS.toSeconds(prog) -
+                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(prog)))
+                );
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                    int prog = seekBar.getProgress();
+                    mediaPlayer.seekTo(prog);
+                    durationHandler.postDelayed(updateSeekBarTime, 100);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //TODO Auto-generated method stub
+                durationHandler.removeCallbacks(updateSeekBarTime);
+
+            }
+        });
 
         long songID = song.getID();
         Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songID);
@@ -308,5 +336,14 @@ public class BookmarksActivity extends Activity {
     // Getter method to use in dialogs
     public long getFinalTime() {
         return finalTime;
+    }
+
+    public int progressToTimer(int progress, int totalDuration) {
+        int currentDuration = 0;
+        totalDuration = (int) (totalDuration / 1000);
+        currentDuration = (int) ((((double)progress) / 100) * totalDuration);
+
+        // return current duration in milliseconds
+        return currentDuration * 1000;
     }
 }
