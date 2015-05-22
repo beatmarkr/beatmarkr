@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.os.Bundle;
@@ -101,6 +100,14 @@ public class SongListActivity extends Activity {
             }
             while (musicCursor.moveToNext());
             musicCursor.close();
+            //test
+            Cursor c = helper.queryMusic(new String[]{});
+            System.out.println(c.toString());
+            while (c.moveToNext()) {
+                System.out.println(c.getString(0) + c.getString(1) + c.getString(2));
+            }
+            c.close();
+            //end test
             helper.close();
         }
     }

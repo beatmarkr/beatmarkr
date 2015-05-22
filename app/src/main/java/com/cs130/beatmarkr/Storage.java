@@ -31,7 +31,7 @@ public interface Storage {
     /** Query functions ********************************************/
 
     /** Search songs by song title keywords.
-     *  Null keywords will return all songs. */
+     *  Empty (not null) keywords will return all songs. */
     public Cursor queryMusic(String [] keywords);
 
     /** Search bookmarks by song and description.

@@ -67,6 +67,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        //As of now...there are no new versions of schema, so we do nothing.
         //onCreate(db);
     }
 
@@ -86,8 +87,8 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
         values.put(MusicDBContract.MusicEntry.COLUMN_TITLE, song.getTitle());
         values.put(MusicDBContract.MusicEntry.COLUMN_ARTIST, song.getArtist());
 
-        // Insert the new row
-        db.insert(MusicDBContract.MusicEntry.TABLE_NAME,null,values);
+        // Insert the new row. If entry already exists, don't output as error.
+        db.insertWithOnConflict(MusicDBContract.MusicEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_IGNORE);
     }
 
     /** Deleting a song also deletes all its bookmarks. */
@@ -106,7 +107,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
         values.put(MusicDBContract.BookmarkEntry.COLUMN_DESC, bm.getDescription());
 
         // Insert the new row
-        db.insert(MusicDBContract.BookmarkEntry.TABLE_NAME,null,values);
+        db.insertWithOnConflict(MusicDBContract.BookmarkEntry.TABLE_NAME,null,values,SQLiteDatabase.CONFLICT_IGNORE);
     }
 
     /** User can change seekTime and/or description only. Put null for unchanged values. */
@@ -143,7 +144,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
     /*  These require a readable database. */
 
     /** Search songs by song title keywords.
-     *  Null keywords will return all songs. */
+     *  Empty keywords will return all songs. */
     public Cursor queryMusic(String [] keywords) {
         String[] projection = { //return values
                 MusicDBContract.MusicEntry.COLUMN_MUSIC_ID,
@@ -152,27 +153,40 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
         };
 
         String sortOrder =
-                MusicDBContract.MusicEntry.COLUMN_TITLE + " DESC";
+                MusicDBContract.MusicEntry.COLUMN_TITLE + " ASC";
 
         String where = null;
+        String [] dupKeywords = keywords;
         if (keywords.length > 0) {
             where = "";
             for (int i = 0; i < keywords.length - 1; i++) {
-                where += MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ?% AND ";
+                where += "( " + MusicDBContract.MusicEntry.COLUMN_ARTIST + " LIKE ? OR " +
+                        MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ? ) AND ";
             }
-            where += MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ?%";
+            where += "( " + MusicDBContract.MusicEntry.COLUMN_ARTIST + " LIKE ? OR " +
+                    MusicDBContract.MusicEntry.COLUMN_TITLE + " LIKE ? )";
+            dupKeywords = formatKeywords(keywords);
         }
 
         Cursor c = db.query(
                 MusicDBContract.MusicEntry.TABLE_NAME,    // The table to query
                 projection,                               // The columns to return
                 where,                                    // The columns for the WHERE clause
-                keywords,                                 // The values for the WHERE clause
+                dupKeywords,                                 // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
                 sortOrder                                 // The sort order
         );
         return c;
+    }
+
+    private String [] formatKeywords(String[] s) {
+        String [] ret = new String[s.length*2];
+        for (int i=0; i<s.length; i++) {
+            ret[2*i] = "%" + s[i] + "%";
+            ret[2*i+1] = "%" + s[i] + "%";
+        }
+        return ret;
     }
 
     /** Search bookmarks by song and description.
@@ -187,12 +201,12 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
         };
 
         String sortOrder =
-                MusicDBContract.BookmarkEntry.COLUMN_TIME + " DESC";
+                MusicDBContract.BookmarkEntry.COLUMN_TIME + " ASC";
 
         String where = MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID + " = ?";
         if (descWords.length > 1) {
             for (int i = 1; i < descWords.length; i++) {
-                where += " AND " + MusicDBContract.BookmarkEntry.COLUMN_DESC + " LIKE ?%";
+                where += " AND " + MusicDBContract.BookmarkEntry.COLUMN_DESC + " LIKE ?";
             }
         }
 
@@ -200,7 +214,7 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
                 MusicDBContract.BookmarkEntry.TABLE_NAME,    // The table to query
                 projection,                               // The columns to return
                 where,                                    // The columns for the WHERE clause
-                descWords,                                 // The values for the WHERE clause
+                formatDescWords(descWords),               // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
                 sortOrder                                 // The sort order
@@ -208,8 +222,20 @@ public class MusicSQLiteHelper extends SQLiteOpenHelper implements Storage {
         return c;
     }
 
+    private String [] formatDescWords(String[] s) {
+        for (int i=1; i<s.length; i++) {
+            s[i] = "%" + s[i] + "%";
+        }
+        return s;
+    }
+
     /** Returns all bookmarks with a seekTime in the range [start, end] for a given song. */
     public Cursor queryBookmarksByRange(long musicId, long start, long end) {
+        if (end < start) {
+            long temp = end;
+            start = end;
+            end = temp;
+        }
         String[] projection = { //return values
                 MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID,
                 MusicDBContract.BookmarkEntry.COLUMN_TIME,
