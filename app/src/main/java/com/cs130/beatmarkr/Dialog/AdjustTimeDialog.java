@@ -35,18 +35,14 @@ public class AdjustTimeDialog extends GenericDialog {
         secondsNp = (NumberPicker)view.findViewById(R.id.seconds);
         millisecondsNp = (NumberPicker)view.findViewById(R.id.milliseconds);
 
-        // Scroll the milliseconds in intervals of 50
-        String[] ms_values = new String[20];
-        for(int i = 0; i < ms_values.length; i++){
-            ms_values[i] = Integer.toString(i*50);
-        }
-
         // Set the minimum and maximum values of the number picker
         long finalTime = ((BookmarksActivity)activity).getFinalTime();
 
         int MIN_VALUE = 0;
+
         int MINUTE_MAX_VALUE = (int)TimeUnit.MILLISECONDS.toMinutes(finalTime);
         int SEC_MAX_VALUE = 59;
+        int MS_MAX_VALUE = 999;
 
         minutesNp.setMinValue(MIN_VALUE);
         minutesNp.setMaxValue(MINUTE_MAX_VALUE);
@@ -55,8 +51,7 @@ public class AdjustTimeDialog extends GenericDialog {
         secondsNp.setMaxValue(SEC_MAX_VALUE);
 
         millisecondsNp.setMinValue(MIN_VALUE);
-        millisecondsNp.setMaxValue(ms_values.length - 1);
-        millisecondsNp.setDisplayedValues(ms_values);
+        millisecondsNp.setMaxValue(MS_MAX_VALUE);
 
         // Display the current bookmark time in the number picker
         long currTime = ((BookmarksActivity)activity).getBmList().get(position).getSeekTime();
@@ -68,6 +63,9 @@ public class AdjustTimeDialog extends GenericDialog {
         minutesNp.setValue(min);
         secondsNp.setValue(sec);
         millisecondsNp.setValue(msec);
+
+        // Scroll faster when holding down
+        millisecondsNp.setOnLongPressUpdateInterval(50);
     }
 
     @Override
@@ -81,6 +79,13 @@ public class AdjustTimeDialog extends GenericDialog {
                         long newTime = TimeUnit.MINUTES.toMillis(minutesNp.getValue());
                         newTime += TimeUnit.SECONDS.toMillis(secondsNp.getValue());
                         newTime += millisecondsNp.getValue();
+
+                        long finalTime = ((BookmarksActivity)activity).getFinalTime();
+                        
+                        // The max time is the song duration
+                        if (newTime > finalTime) {
+                            newTime = finalTime;
+                        }
 
                         ((BookmarksActivity)activity).getBmList().get(position).setSeekTime(newTime);
                         ((BookmarksActivity)activity).update();
