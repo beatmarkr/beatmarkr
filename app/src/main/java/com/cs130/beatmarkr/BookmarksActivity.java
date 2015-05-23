@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.cs130.beatmarkr.Dialog.EditDialog;
 import com.cs130.beatmarkr.Dialog.NameDialog;
+import com.cs130.beatmarkr.Dialog.StartLoopDialog;
 import com.cs130.beatmarkr.Settings.SettingsActivity;
 
 import java.io.IOException;
@@ -177,14 +178,14 @@ public class BookmarksActivity extends Activity {
         }
     };
 
+    // Check if media player's current position is outside of the loop
     private void checkLoop() {
         timeElapsed = mediaPlayer.getCurrentPosition();
 
-        // Uncomment the code below if you want to use looping
-//        if (timeElapsed >= bmLoopEnd.getSeekTime() - offset ||
-//                timeElapsed < bmLoopStart.getSeekTime() - offset) {
-//            playLoop();
-//        }
+        if (timeElapsed >= bmLoopEnd.getSeekTime() - offset ||
+                timeElapsed < bmLoopStart.getSeekTime() - offset) {
+            playLoop();
+        }
     }
 
     private void playLoop() {
@@ -300,7 +301,7 @@ public class BookmarksActivity extends Activity {
     public void setBmLoopStart(Bookmark bm) {
         bmLoopStart = bm;
         bmLoopStartText.setText("START: " + bmLoopStart.getDescription() + " " + bmLoopStart.getSeekTimeString());
-        playLoop();
+        //playLoop();
     }
 
     // Called when selecting end of the loop
@@ -338,12 +339,9 @@ public class BookmarksActivity extends Activity {
         return finalTime;
     }
 
-    public int progressToTimer(int progress, int totalDuration) {
-        int currentDuration = 0;
-        totalDuration = (int) (totalDuration / 1000);
-        currentDuration = (int) ((((double)progress) / 100) * totalDuration);
-
-        // return current duration in milliseconds
-        return currentDuration * 1000;
+    // Called when set loop button is pressed
+    public void setLoop(View view) {
+        StartLoopDialog startLoop = new StartLoopDialog(this);
+        startLoop.createDialog();
     }
 }
