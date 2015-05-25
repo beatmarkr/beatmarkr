@@ -24,6 +24,8 @@ public class DeleteDialog extends GenericDialog {
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        ((BookmarksActivity)activity).getStorage().deleteBookmarkEntry(
+                                ((BookmarksActivity)activity).getBmList().get(position));
                         ((BookmarksActivity)activity).getBmList().remove(position);
                         ((BookmarksActivity)activity).update();
                     }

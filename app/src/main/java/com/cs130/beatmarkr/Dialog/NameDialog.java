@@ -41,6 +41,7 @@ public class NameDialog extends GenericDialog {
                         String newDescription = bookmarkName.getText().toString();
                         Bookmark bm = ((BookmarksActivity)activity).getBmList().get(position);
                         bm.setDescription(newDescription);
+                        ((BookmarksActivity)activity).getStorage().addBookmarkEntry(bm);
                         ((BookmarksActivity)activity).update();
 
                         // Scroll the list to the bookmark's new position
