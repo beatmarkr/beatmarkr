@@ -87,4 +87,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center" />
 
+    <Button android:id="@+id/setLoop_button"
+        android:text="Set Loop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:onClick="setLoop" />
+
 </LinearLayout>
