@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,10 +20,12 @@ import java.util.ArrayList;
 public class SetLoopAdapter extends BaseAdapter {
     private ArrayList<Bookmark> bmList;
     private LayoutInflater bmInflater;
+    private Bookmark bm;
 
-    public SetLoopAdapter(Context c, ArrayList<Bookmark> theBms) {
+    public SetLoopAdapter(Context c, ArrayList<Bookmark> theBms, Bookmark checkBm) {
         bmList = theBms;
         bmInflater = LayoutInflater.from(c);
+        bm = checkBm;
     }
 
     @Override
@@ -48,6 +51,7 @@ public class SetLoopAdapter extends BaseAdapter {
         // Get title and artist views
         TextView descView = (TextView)bmLayout.findViewById(R.id.bm_desc);
         TextView timeView = (TextView)bmLayout.findViewById(R.id.bm_time);
+        ImageView checkView = (ImageView)bmLayout.findViewById((R.id.bm_checkbox));
 
         // Get song using position
         Bookmark currBm = bmList.get(position);
@@ -56,8 +60,12 @@ public class SetLoopAdapter extends BaseAdapter {
         descView.setText(currBm.getDescription());
         timeView.setText(currBm.getSeekTimeString());
 
-        // Set position as tag
-        //bmLayout.setTag(position);
+//        if (currBm.equals(bm)) {
+//            checkView.setVisibility(View.VISIBLE);
+//        }
+//        else {
+//            checkView.setVisibility((View.INVISIBLE));
+//        }
 
         return bmLayout;
     }

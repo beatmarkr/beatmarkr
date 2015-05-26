@@ -17,6 +17,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.cs130.beatmarkr.Dialog.EditDialog;
+import com.cs130.beatmarkr.Dialog.ErrorDialog;
 import com.cs130.beatmarkr.Dialog.NameDialog;
 import com.cs130.beatmarkr.Dialog.StartLoopDialog;
 import com.cs130.beatmarkr.Settings.SettingsActivity;
@@ -42,6 +43,8 @@ public class BookmarksActivity extends Activity {
     private ArrayList<Bookmark> bmList;
     private ListView bmListView;
     private BookmarkAdapter bmAdt;
+    private String START_DESCR = "Start of song";
+    private String END_DESCR = "End of song";
 
     private Bookmark bmLoopStart;
     private Bookmark bmLoopEnd;
@@ -234,9 +237,17 @@ public class BookmarksActivity extends Activity {
     // Called when edit button is pressed
     public void editBookmark(View view) {
         int bm_pos = Integer.parseInt(view.getTag().toString());
+        Bookmark bm = bmList.get(bm_pos);
 
-        EditDialog edit = new EditDialog(this, bm_pos);
-        edit.createDialog();
+        if ((bm_pos == 0 && bm.getSeekTime() == 0 && bm.getDescription() == START_DESCR) ||
+                (bm_pos == bmList.size()-1 && bm.getSeekTime() == finalTime && bm.getDescription() == END_DESCR)) {
+            ErrorDialog error = new ErrorDialog(this, "You cannot edit this bookmark.");
+            error.createDialog();
+        }
+        else {
+            EditDialog edit = new EditDialog(this, bm_pos);
+            edit.createDialog();
+        }
     }
 
     // Get the bookmarks from the database
@@ -245,8 +256,8 @@ public class BookmarksActivity extends Activity {
         bmList = new ArrayList<Bookmark>();
 
         // Add start and end bookmarks if they don't exist already
-        bmList.add(new Bookmark(song.getID(), 0, "Start of song"));
-        bmList.add(new Bookmark(song.getID(), mediaPlayer.getDuration(), "End of song"));
+        bmList.add(new Bookmark(song.getID(), 0, START_DESCR));
+        bmList.add(new Bookmark(song.getID(), mediaPlayer.getDuration(), END_DESCR));
 
         bmAdt = new BookmarkAdapter(this, bmList);
         bmListView.setAdapter(bmAdt);
@@ -343,5 +354,15 @@ public class BookmarksActivity extends Activity {
     public void setLoop(View view) {
         StartLoopDialog startLoop = new StartLoopDialog(this);
         startLoop.createDialog();
+    }
+
+    // Getter method to use in dialogs
+    public Bookmark getBmLoopStart() {
+        return bmLoopStart;
+    }
+
+    // Getter method to use in dialogs
+    public Bookmark getBmLoopEnd() {
+        return bmLoopEnd;
     }
 }

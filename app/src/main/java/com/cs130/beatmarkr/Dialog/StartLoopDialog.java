@@ -20,7 +20,8 @@ public class StartLoopDialog extends GenericDialog {
     }
 
     public void setCustomView() {
-        setLoopAdt = new SetLoopAdapter(activity, bmActivity.getBmList());
+        Bookmark bmStart = bmActivity.getBmLoopStart();
+        setLoopAdt = new SetLoopAdapter(activity, bmActivity.getBmList(), bmStart);
     }
 
     @Override

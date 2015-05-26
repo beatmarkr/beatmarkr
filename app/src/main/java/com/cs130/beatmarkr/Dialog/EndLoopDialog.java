@@ -38,7 +38,9 @@ public class EndLoopDialog extends GenericDialog {
             }
         }
 
-        setLoopAdt = new SetLoopAdapter(activity, bmEndList);
+        Bookmark bmEnd = bmActivity.getBmLoopEnd();
+
+        setLoopAdt = new SetLoopAdapter(activity, bmEndList, bmEnd);
     }
 
     @Override
