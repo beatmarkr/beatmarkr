@@ -40,12 +40,16 @@ public class MusicSQLiteHelperTest extends AndroidTestCase {
 
     public void testDeleteMusicEntry() throws Exception {
         addTestMusicEntry();
+        addTestBookmarkEntry();
         Cursor cursor = helper.queryMusic(new String[]{});
         int numRows = cursor.getCount();
-        helper.deleteMusicEntry(1);
         cursor.close();
+        helper.deleteMusicEntry(1);
         cursor = helper.queryMusic(new String[]{});
         Assert.assertEquals(numRows-1,cursor.getCount());
+        cursor.close();
+        cursor = helper.queryBookmarks(new String[]{"1"});
+        Assert.assertEquals(0,cursor.getCount());
         cursor.close();
     }
 

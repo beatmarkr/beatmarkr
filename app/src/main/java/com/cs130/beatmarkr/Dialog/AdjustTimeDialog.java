@@ -86,7 +86,10 @@ public class AdjustTimeDialog extends GenericDialog {
                         if (newTime > finalTime) {
                             newTime = finalTime;
                         }
-
+                        ((BookmarksActivity)activity).getStorage().updateBookmarkEntry(
+                                ((BookmarksActivity)activity).getBmList().get(position),
+                                newTime,
+                                null);
                         ((BookmarksActivity)activity).getBmList().get(position).setSeekTime(newTime);
                         ((BookmarksActivity)activity).update();
                     }

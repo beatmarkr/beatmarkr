@@ -43,6 +43,10 @@ public class RenameDialog extends GenericDialog {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String newDescription = bookmarkName.getText().toString();
+                        ((BookmarksActivity)activity).getStorage().updateBookmarkEntry(
+                                ((BookmarksActivity)activity).getBmList().get(position),
+                                null,
+                                newDescription);
                         ((BookmarksActivity)activity).getBmList().get(position).setDescription(newDescription);
                         ((BookmarksActivity)activity).update();
                     }

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -50,6 +51,7 @@ public class BookmarksActivity extends Activity {
     private Bookmark bmLoopEnd;
 
     private SharedPreferences sharedPref;
+    private Storage helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,7 @@ public class BookmarksActivity extends Activity {
         Intent intent = getIntent();
         songPos = intent.getIntExtra("KEY_SONG_POS", 0);
         song = SongListActivity.getSongList().get(songPos);
+        helper = MusicSQLiteHelper.getInstance(getApplicationContext());
 
         initializeViews();
         getBookmarks();
@@ -108,6 +111,7 @@ public class BookmarksActivity extends Activity {
         mediaPlayer.release();
         durationHandler.removeCallbacks(updateSeekBarTime);
         durationHandler = null;
+        helper.close();
     }
 
     private void initializeViews() {
@@ -255,23 +259,52 @@ public class BookmarksActivity extends Activity {
         bmListView = (ListView)findViewById(R.id.bm_list);
         bmList = new ArrayList<Bookmark>();
 
+        Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
+        int index_id = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_MUSIC_ID);
+        int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+        int index_desc = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_DESC);
+        while (cursor.moveToNext()) {
+            bmList.add(new Bookmark(Long.valueOf(cursor.getString(index_id)),
+                    Long.valueOf(cursor.getString(index_time)),
+                    cursor.getString(index_desc)));
+        }
+        cursor.close();
+
         // Add start and end bookmarks if they don't exist already
-        bmList.add(new Bookmark(song.getID(), 0, START_DESCR));
-        bmList.add(new Bookmark(song.getID(), mediaPlayer.getDuration(), END_DESCR));
+        if (bmList.size() == 0 || bmList.get(0).getSeekTime() != 0) {
+            Bookmark startBm = new Bookmark(song.getID(), 0, START_DESCR);
+            bmList.add(0, startBm);
+            helper.addBookmarkEntry(startBm);
+        }
+        if (bmList.get(bmList.size() - 1).getSeekTime() != mediaPlayer.getDuration()) {
+            Bookmark endBm = new Bookmark(song.getID(), mediaPlayer.getDuration(), END_DESCR);
+            bmList.add(endBm);
+            helper.addBookmarkEntry(endBm);
+        }
 
         bmAdt = new BookmarkAdapter(this, bmList);
         bmListView.setAdapter(bmAdt);
     }
 
     // Called when add button is pressed
+    // If user attempts to create bookmark with same timestamp, it will silently ignore the attempt.
     public void newBookmark(View view) {
         int bmTime = mediaPlayer.getCurrentPosition();
         boolean namePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_NAME, true);
+        Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
+        int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+        while (cursor.moveToNext()) {
+            if (Long.valueOf(cursor.getString(index_time)) == bmTime) {
+                return; //don't create a new bookmark - can add a popup alert
+            }
+        }
+        cursor.close();
 
         // Check settings for auto-generating bookmark names
         if (namePref) {
             Bookmark bm = new Bookmark(song.getID(), bmTime, "Bookmark-" + (bmList.size() + 1));
             bmList.add(bm);
+            helper.addBookmarkEntry(bm);
             update();
 
             int position = bmList.size()-1;
@@ -355,6 +388,9 @@ public class BookmarksActivity extends Activity {
         StartLoopDialog startLoop = new StartLoopDialog(this);
         startLoop.createDialog();
     }
+
+    // Getter method to use in dialogs
+    public Storage getStorage() { return helper; }
 
     // Getter method to use in dialogs
     public Bookmark getBmLoopStart() {
