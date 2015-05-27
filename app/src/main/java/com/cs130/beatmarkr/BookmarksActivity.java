@@ -5,6 +5,7 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -30,6 +31,8 @@ import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.view.ViewGroup.MarginLayoutParams;
+import android.widget.RelativeLayout;
 
 public class BookmarksActivity extends Activity {
     private TextView songName, duration, bmLoopStartText, bmLoopEndText;
@@ -52,6 +55,12 @@ public class BookmarksActivity extends Activity {
 
     private SharedPreferences sharedPref;
     private Storage helper;
+
+    private int startMarkerPos;
+    private int endMarkerPos;
+    private int seekbarWidth;
+
+    private View startDivider, endDivider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +87,7 @@ public class BookmarksActivity extends Activity {
         play(findViewById(android.R.id.content));
 
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
     }
 
     @Override
@@ -118,6 +128,10 @@ public class BookmarksActivity extends Activity {
         songName = (TextView)findViewById(R.id.songName);
         duration = (TextView)findViewById(R.id.songDuration);
         seekbar = (SeekBar)findViewById(R.id.seekBar);
+        startDivider = (View)findViewById(R.id.seek_divider_1);
+        endDivider = (View)findViewById(R.id.seek_divider_2);
+        startDivider.bringToFront();
+        endDivider.bringToFront();
         seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -343,15 +357,44 @@ public class BookmarksActivity extends Activity {
 
     // Called when selecting start of the loop
     public void setBmLoopStart(Bookmark bm) {
+
+        //unset the previous listview indicator
+        if (bmLoopStart != null) {
+            setIndicatorInList(2,bmLoopStart);
+        }
+
         bmLoopStart = bm;
         bmLoopStartText.setText("START: " + bmLoopStart.getDescription() + " " + bmLoopStart.getSeekTimeString());
-        //playLoop();
+        //update start of loop indicator
+        seekbarWidth = seekbar.getWidth() - seekbar.getPaddingLeft() - seekbar.getPaddingRight();
+        startMarkerPos = ((int)bmLoopStart.getSeekTime() * seekbarWidth /mediaPlayer.getDuration())+ seekbar.getPaddingLeft();
+        MarginLayoutParams params = (MarginLayoutParams) startDivider.getLayoutParams();
+        params.leftMargin = startMarkerPos;
+        startDivider.setLayoutParams(params);
+        seekbar.setSecondaryProgress(startMarkerPos);
+
+        setIndicatorInList(0,bmLoopStart);
     }
 
     // Called when selecting end of the loop
     public void setBmLoopEnd(Bookmark bm) {
+
+        //unset the previous listview indicator
+        if (bmLoopEnd != null && bmLoopEnd != bmLoopStart) {
+            setIndicatorInList(2,bmLoopEnd);
+        }
+
         bmLoopEnd = bm;
         bmLoopEndText.setText("END: " + bmLoopEnd.getDescription() + " " + bmLoopEnd.getSeekTimeString());
+        //update end of loop indicator
+        seekbarWidth = seekbar.getWidth() - seekbar.getPaddingLeft() - seekbar.getPaddingRight();
+        endMarkerPos = ((int)bmLoopEnd.getSeekTime() * seekbarWidth /mediaPlayer.getDuration())+ seekbar.getPaddingLeft();
+        MarginLayoutParams params = (MarginLayoutParams) endDivider.getLayoutParams();
+        params.leftMargin = endMarkerPos;
+        endDivider.setLayoutParams(params);
+
+        setIndicatorInList(1,bmLoopEnd);
+
         playLoop();
     }
 
@@ -400,5 +443,32 @@ public class BookmarksActivity extends Activity {
     // Getter method to use in dialogs
     public Bookmark getBmLoopEnd() {
         return bmLoopEnd;
+    }
+
+    // Set the indicators in the bookmark list
+    // 0 for loop start bookmark
+    // 1 for loop end bookmark
+    // 2 for setting transparent
+    public void setIndicatorInList(int loop, Bookmark bm) {
+        int pos=0;
+        Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
+        int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+        while (cursor.moveToNext()) {
+            if (Long.valueOf(cursor.getString(index_time)) == bm.getSeekTime()) {
+                pos = cursor.getPosition();
+                break;
+            }
+        }
+        cursor.close();
+        if (loop == 1) {
+            bmListView.getChildAt(pos).setBackgroundColor(Color.RED);
+        }
+        else if (loop == 0) {
+            bmListView.getChildAt(pos).setBackgroundColor(Color.GREEN);
+        }
+        else if (loop == 2) {
+            bmListView.getChildAt(pos).setBackgroundColor(Color.TRANSPARENT);
+        }
+
     }
 }
