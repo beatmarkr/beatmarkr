@@ -32,7 +32,7 @@ public class SongListActivity extends Activity {
         songView = (ListView)findViewById(R.id.song_list);
         songList = new ArrayList<Song>();
 
-        getSongs(); //see function for To Do
+        getSongs();
 
         // Sort the songs alphabetically
         Collections.sort(songList, new Comparator<Song>() {
@@ -81,7 +81,7 @@ public class SongListActivity extends Activity {
 
     /** Called each time the app is opened. It updates the database's songs by getting the list of
      * songs (audio media) on the device. It also populates songList.
-     * TODO: add/delete songs from database based on current songs on device + multithreading
+     * It will add/delete songs from database to match with current songs on device.
      * As of now, it will try to add songs each time (database will reject existing entries
      * by music ID).
      */
@@ -103,13 +103,64 @@ public class SongListActivity extends Activity {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
+                //helper.addMusicEntry(new Song(thisId, thisTitle, thisArtist));
                 songList.add(new Song(thisId, thisTitle, thisArtist));
             }
             while (musicCursor.moveToNext());
             musicCursor.close();
-            helper.close();
+            //helper.close();
         }
+        // Sort the songs by ID
+        Collections.sort(songList, new Comparator<Song>() {
+            public int compare(Song a, Song b) {
+                return (int)(a.getID() - b.getID());
+            }
+        });
+
+        // Get list of songs in database and update database on new songs and songs that no longer exist
+        Cursor dbCursor = helper.queryMusic(new String[]{}); //all songs in alphabetical order
+        int idCol = dbCursor.getColumnIndex(MusicDBContract.MusicEntry.COLUMN_MUSIC_ID);
+        int titleCol = dbCursor.getColumnIndex(MusicDBContract.MusicEntry.COLUMN_TITLE);
+        int artistCol = dbCursor.getColumnIndex(MusicDBContract.MusicEntry.COLUMN_ARTIST);
+        ArrayList<Song> dbSongs = new ArrayList<Song>();
+        while (dbCursor.moveToNext()) {
+            dbSongs.add(new Song(Long.valueOf(dbCursor.getString(idCol)),
+                                 dbCursor.getString(titleCol),
+                                 dbCursor.getString(artistCol)));
+        }
+        dbCursor.close();
+        int min = Math.min(songList.size(),dbSongs.size());
+        int i=0; //index for songList
+        int j=0; //index for dbSongs
+        for (; i<min && j<min;) {
+            if (songList.get(i).getID() == dbSongs.get(j).getID() &&
+                songList.get(i).getTitle().equals(dbSongs.get(j).getTitle()) &&
+                songList.get(i).getArtist().equals(dbSongs.get(j).getArtist())) {
+                i++; j++;
+            } else if (songList.get(i).getID() < dbSongs.get(j).getID()) { //song got added
+                helper.addMusicEntry(songList.get(i));
+                i++;
+            } else if (songList.get(i).getID() > dbSongs.get(j).getID()) { //song got deleted
+                helper.deleteMusicEntry(dbSongs.get(j).getID());
+                j++;
+            } else { //new song got assigned to ID existing in database
+                helper.deleteMusicEntry(songList.get(i).getID());
+                helper.addMusicEntry(songList.get(i));
+                i++; j++;
+            }
+        }
+        if (min == songList.size()) {
+            //delete rest of entries in database
+            for (;j < dbSongs.size(); j++) {
+                helper.deleteMusicEntry(j);
+            }
+        } else { // min == dbSongs.size()
+            //add rest of entries in songList
+            for (;i < songList.size(); i++) {
+                helper.addMusicEntry(songList.get(i));
+            }
+        }
+        helper.close();
     }
 
     // Getter method to use in BookmarksActivity
