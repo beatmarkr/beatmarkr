@@ -67,8 +67,8 @@ public class BookmarksActivity extends Activity {
     private boolean shouldCheckLoop = true;
     private boolean isLoopPaused = false;
 
-    private SoundPool tickSound;
-    private int tickSoundID;
+    private MediaPlayer soundCount;
+    private int recentNumberPlayed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,10 +95,6 @@ public class BookmarksActivity extends Activity {
         play(findViewById(android.R.id.content));
 
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-        tickSound = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-        tickSoundID = tickSound.load(this, R.raw.tick, 1);
-
     }
 
     @Override
@@ -134,8 +130,10 @@ public class BookmarksActivity extends Activity {
         durationHandler.removeCallbacks(resumeLoop);
         durationHandler = null;
         helper.close();
-        tickSound.stop(tickSoundID);
-        tickSound.release();
+        if (soundCount != null) {
+            soundCount.stop();
+            soundCount.release();
+        }
     }
 
     private void initializeViews() {
@@ -192,7 +190,6 @@ public class BookmarksActivity extends Activity {
             timeElapsed = mediaPlayer.getCurrentPosition();
             seekbar.setProgress((int) timeElapsed);
             durationHandler.postDelayed(updateSeekBarTime, 100);
-            cancelResumeLoop();
         }
     }
 
@@ -238,20 +235,22 @@ public class BookmarksActivity extends Activity {
             shouldCheckLoop = false;
             isLoopPaused = true;
 
-            int gapInterval = Integer.parseInt(sharedPref.getString(SettingsActivity.KEY_PREF_GAP_INTERVAL, "5"));
+            final int gapInterval = Integer.parseInt(sharedPref.getString(SettingsActivity.KEY_PREF_GAP_INTERVAL, "5"));
             boolean gapSound = sharedPref.getBoolean(SettingsActivity.KEY_PREF_GAP_SOUND, true);
 
             durationHandler.postDelayed(resumeLoop, gapInterval*1000);
 
             if (gapSound) {
-                tickSound.play(tickSoundID, 1, 1, 0, gapInterval, 0.99f);
+                recentNumberPlayed = gapInterval;
+                playNextSoundNumber(recentNumberPlayed);
             }
         }
     }
 
     private void playLoop() {
-        tickSound.autoPause();
-        tickSound.stop(tickSoundID);
+        if (soundCount != null) {
+            soundCount.stop();
+        }
         mediaPlayer.stop();
 
         try {
@@ -535,8 +534,58 @@ public class BookmarksActivity extends Activity {
         }
     }
 
-    private void cancelResumeLoop() {
-        durationHandler.removeCallbacks(resumeLoop);
-        shouldCheckLoop = true;
+    private void playNextSoundNumber(int number) {
+        if (soundCount != null) {
+            soundCount.release();
+        }
+
+        switch (number) {
+            case 1:
+                soundCount = MediaPlayer.create(this, R.raw.one);
+                break;
+            case 2:
+                soundCount = MediaPlayer.create(this, R.raw.two);
+                break;
+            case 3:
+                soundCount = MediaPlayer.create(this, R.raw.three);
+                break;
+            case 4:
+                soundCount = MediaPlayer.create(this, R.raw.four);
+                break;
+            case 5:
+                soundCount = MediaPlayer.create(this, R.raw.five);
+                break;
+            case 6:
+                soundCount = MediaPlayer.create(this, R.raw.six);
+                break;
+            case 7:
+                soundCount = MediaPlayer.create(this, R.raw.seven);
+                break;
+            case 8:
+                soundCount = MediaPlayer.create(this, R.raw.eight);
+                break;
+            case 9:
+                soundCount = MediaPlayer.create(this, R.raw.nine);
+                break;
+            case 10:
+                soundCount = MediaPlayer.create(this, R.raw.ten);
+                break;
+            default:
+                break;
+        }
+        if (soundCount != null) {
+
+            soundCount.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    if (recentNumberPlayed > 1) {
+                        recentNumberPlayed--;
+                        playNextSoundNumber(recentNumberPlayed);
+                    }
+                }
+            });
+
+            soundCount.start();
+        }
     }
 }
