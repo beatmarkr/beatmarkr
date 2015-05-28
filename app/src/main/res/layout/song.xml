@@ -1,33 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="5dp"
     android:onClick="songPicked">
 
-    <TextView
-        android:id="@+id/song_title"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/abc_primary_text_material_dark"
-        android:textSize="18sp"
-        style="@style/AppTheme"
-        android:theme="@style/AppTheme"
-        android:textColorLink="@color/link_text_material_dark"
-        android:textColorHint="@color/hint_foreground_material_dark"
-        android:textColorHighlight="@color/highlighted_text_material_dark" />
+    <ImageView
+        android:id="@+id/song_icon"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:src="@drawable/ic_action_headphones"
+        android:contentDescription="Album artwork"
+        android:padding="5dp" />
 
-    <TextView
-        android:id="@+id/song_artist"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/abc_secondary_text_material_dark"
-        android:textSize="14sp"
-        style="@style/AppTheme"
-        android:textColorHighlight="@color/highlighted_text_material_dark"
-        android:textColorHint="@color/hint_foreground_material_dark"
-        android:textColorLink="@color/link_text_material_dark"
-        android:theme="@style/AppTheme" />
+        android:orientation="vertical"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/song_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/abc_primary_text_material_dark"
+            android:textSize="22sp"
+            style="@style/AppTheme"
+            android:theme="@style/AppTheme"
+            android:textColorLink="@color/link_text_material_dark"
+            android:textColorHint="@color/hint_foreground_material_dark"
+            android:textColorHighlight="@color/highlighted_text_material_dark"
+            android:layout_gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/song_artist"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/abc_secondary_text_material_dark"
+            android:textSize="18sp"
+            style="@style/AppTheme"
+            android:textColorHighlight="@color/highlighted_text_material_dark"
+            android:textColorHint="@color/hint_foreground_material_dark"
+            android:textColorLink="@color/link_text_material_dark"
+            android:theme="@style/AppTheme"
+            android:layout_gravity="center_vertical" />
+
+    </LinearLayout>
 
 </LinearLayout>
