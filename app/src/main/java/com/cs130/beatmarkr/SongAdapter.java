@@ -1,10 +1,12 @@
 package com.cs130.beatmarkr;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -16,10 +18,12 @@ import java.util.ArrayList;
 public class SongAdapter extends BaseAdapter {
     private ArrayList<Song> songs;
     private LayoutInflater songInflater;
+    private Context context;
 
     public SongAdapter(Context c, ArrayList<Song> theSongs) {
         songs = theSongs;
         songInflater = LayoutInflater.from(c);
+        context = c;
     }
 
     @Override
@@ -45,6 +49,7 @@ public class SongAdapter extends BaseAdapter {
         // Get title and artist views
         TextView songView = (TextView)songLayout.findViewById(R.id.song_title);
         TextView artistView = (TextView)songLayout.findViewById(R.id.song_artist);
+        ImageView artworkView = (ImageView)songLayout.findViewById(R.id.song_icon);
 
         // Get song using position
         Song currSong = songs.get(position);
@@ -52,6 +57,12 @@ public class SongAdapter extends BaseAdapter {
         // Get title and artist strings
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());
+
+        // Get album art
+        Bitmap artwork = currSong.getArtwork(this.context);
+        if (artwork != null) {
+            artworkView.setImageBitmap(artwork);
+        }
 
         // Set position as tag
         songLayout.setTag(position);

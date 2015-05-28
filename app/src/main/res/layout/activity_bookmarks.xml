@@ -68,40 +68,40 @@
         android:gravity="center_horizontal"
         android:orientation="horizontal" >
 
-        <ImageButton android:id="@+id/media_new"
+        <ImageView android:id="@+id/media_new"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
+            android:layout_height="fill_parent"
             android:onClick="newBookmark"
-            android:src="@android:drawable/ic_input_add" />
+            android:src="@drawable/ic_action_new"
+            android:padding="5dp" />
 
-        <ImageButton android:id="@+id/media_rew"
+        <ImageView android:id="@+id/media_rew"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
+            android:layout_height="fill_parent"
             android:onClick="rewind"
-            android:src="@android:drawable/ic_media_rew" />
+            android:src="@drawable/ic_action_rewind"
+            android:padding="5dp" />
 
-        <ImageButton android:id="@+id/media_pause"
+        <ImageView android:id="@+id/media_pause"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
+            android:layout_height="fill_parent"
             android:onClick="pause"
-            android:src="@android:drawable/ic_media_pause" />
+            android:src="@drawable/ic_action_pause"
+            android:padding="5dp" />
 
-        <ImageButton android:id="@+id/media_play"
+        <ImageView android:id="@+id/media_play"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
+            android:layout_height="fill_parent"
             android:onClick="play"
-            android:src="@android:drawable/ic_media_play" />
+            android:src="@drawable/ic_action_play"
+            android:padding="5dp" />
 
-        <ImageButton android:id="@+id/media_ff"
+        <ImageView android:id="@+id/media_ff"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
+            android:layout_height="fill_parent"
             android:onClick="forward"
-            android:src="@android:drawable/ic_media_ff" />
+            android:src="@drawable/ic_action_fast_forward"
+            android:padding="5dp" />
     </LinearLayout>
 
     <TextView android:id="@+id/bm_loop_start"

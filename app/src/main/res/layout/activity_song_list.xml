@@ -14,7 +14,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:singleLine="false"
-        android:textSize="@dimen/abc_text_size_large_material"
         android:textColor="@color/abc_primary_text_material_dark"
         android:paddingBottom="@dimen/abc_action_bar_icon_vertical_padding_material"
         android:elegantTextHeight="false" />
