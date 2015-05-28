@@ -28,11 +28,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.RelativeLayout;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class BookmarksActivity extends Activity {
     private TextView songName, duration, bmLoopStartText, bmLoopEndText;
@@ -199,13 +203,69 @@ public class BookmarksActivity extends Activity {
         }
     };
 
+    private void reSched(int a) {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                playLoop();
+            }
+        },a);
+    };
+
     // Check if media player's current position is outside of the loop
     private void checkLoop() {
         timeElapsed = mediaPlayer.getCurrentPosition();
 
         if (timeElapsed >= bmLoopEnd.getSeekTime() - offset ||
                 timeElapsed < bmLoopStart.getSeekTime() - offset) {
-            playLoop();
+            mediaPlayer.pause();
+            /*Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // to sleep 10 seconds
+                        Thread.sleep(5000);
+                        //playLoop();
+                        //mediaPlayer.seekTo((int) bmLoopStart.getSeekTime());
+                        mediaPlayer.start();
+                    } catch (InterruptedException e) {
+                        // recommended because catching InterruptedException clears interrupt flag
+                        Thread.currentThread().interrupt();
+                        // you probably want to quit if the thread is interrupted
+                    }
+                }
+            };
+
+            Thread t = new Thread(r);
+            t.start();*/
+            /*Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    int i = 0;
+                    try {
+                        // to sleep 10 seconds
+                        sleep(5000);
+                        //playLoop();
+                        //mediaPlayer.seekTo((int) bmLoopStart.getSeekTime());
+                        //mediaPlayer.start();
+
+                        i++;
+                        System.out.println("Here is how many: " + i);
+                    } catch (InterruptedException e) {
+                        // recommended because catching InterruptedException clears interrupt flag
+                        Thread.currentThread().interrupt();
+                        // you probably want to quit if the thread is interrupted
+                    }
+                }
+            };*/
+            /*ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
+            exec.schedule( new Runnable() {
+               public void run() {
+                playLoop();
+               }
+            }, 4, TimeUnit.SECONDS);*/
+            reSched(5000);
+            //playLoop();
         }
     }
 
