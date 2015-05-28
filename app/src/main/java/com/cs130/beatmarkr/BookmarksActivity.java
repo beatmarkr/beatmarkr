@@ -47,8 +47,8 @@ public class BookmarksActivity extends Activity {
     private ArrayList<Bookmark> bmList;
     private ListView bmListView;
     private BookmarkAdapter bmAdt;
-    private String START_DESCR = "Start of song";
-    private String END_DESCR = "End of song";
+    private String START_DESCR = "Start of Song";
+    private String END_DESCR = "End of Song";
 
     private Bookmark bmLoopStart;
     private Bookmark bmLoopEnd;
@@ -257,15 +257,18 @@ public class BookmarksActivity extends Activity {
         int bm_pos = Integer.parseInt(view.getTag().toString());
         Bookmark bm = bmList.get(bm_pos);
 
-        if ((bm_pos == 0 && bm.getSeekTime() == 0 && bm.getDescription() == START_DESCR) ||
-                (bm_pos == bmList.size()-1 && bm.getSeekTime() == finalTime && bm.getDescription() == END_DESCR)) {
-            ErrorDialog error = new ErrorDialog(this, "You cannot edit this bookmark.");
-            error.createDialog();
-        }
-        else {
-            EditDialog edit = new EditDialog(this, bm_pos);
-            edit.createDialog();
-        }
+//        if ((bm.getSeekTime() == 0 && bm.getDescription() == START_DESCR) ||
+//                (bm.getSeekTime() == finalTime && bm.getDescription() == END_DESCR)) {
+//            ErrorDialog error = new ErrorDialog(this, "You cannot edit this bookmark.");
+//            error.createDialog();
+//        }
+//        else {
+//            EditDialog edit = new EditDialog(this, bm_pos);
+//            edit.createDialog();
+//        }
+
+        EditDialog edit = new EditDialog(this, bm_pos);
+        edit.createDialog();
     }
 
     // Get the bookmarks from the database
@@ -305,8 +308,10 @@ public class BookmarksActivity extends Activity {
     public void newBookmark(View view) {
         int bmTime = mediaPlayer.getCurrentPosition();
         boolean namePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_NAME, true);
+
         Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
         int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+
         while (cursor.moveToNext()) {
             if (Long.valueOf(cursor.getString(index_time)) == bmTime) {
                 return; //don't create a new bookmark - can add a popup alert
@@ -360,7 +365,7 @@ public class BookmarksActivity extends Activity {
 
         //unset the previous listview indicator
         if (bmLoopStart != null) {
-            setIndicatorInList(2,bmLoopStart);
+            //setIndicatorInList(2,bmLoopStart);
         }
 
         bmLoopStart = bm;
@@ -373,7 +378,7 @@ public class BookmarksActivity extends Activity {
         startDivider.setLayoutParams(params);
         seekbar.setSecondaryProgress(startMarkerPos);
 
-        setIndicatorInList(0,bmLoopStart);
+        //setIndicatorInList(0,bmLoopStart);
     }
 
     // Called when selecting end of the loop
@@ -381,7 +386,7 @@ public class BookmarksActivity extends Activity {
 
         //unset the previous listview indicator
         if (bmLoopEnd != null && bmLoopEnd != bmLoopStart) {
-            setIndicatorInList(2,bmLoopEnd);
+            //setIndicatorInList(2,bmLoopEnd);
         }
 
         bmLoopEnd = bm;
@@ -393,7 +398,7 @@ public class BookmarksActivity extends Activity {
         params.leftMargin = endMarkerPos;
         endDivider.setLayoutParams(params);
 
-        setIndicatorInList(1,bmLoopEnd);
+        //setIndicatorInList(1,bmLoopEnd);
 
         playLoop();
     }
@@ -445,6 +450,11 @@ public class BookmarksActivity extends Activity {
         return bmLoopEnd;
     }
 
+    // Getter method to use in dialogs
+    public Song getSong() {
+        return song;
+    }
+
     // Set the indicators in the bookmark list
     // 0 for loop start bookmark
     // 1 for loop end bookmark
@@ -461,10 +471,12 @@ public class BookmarksActivity extends Activity {
         }
         cursor.close();
         if (loop == 1) {
-            bmListView.getChildAt(pos).setBackgroundColor(Color.RED);
+            // Reddish
+            bmListView.getChildAt(pos).setBackgroundColor(0xFFAF0B0B);
         }
         else if (loop == 0) {
-            bmListView.getChildAt(pos).setBackgroundColor(Color.GREEN);
+            // Greenish
+            bmListView.getChildAt(pos).setBackgroundColor(0xFF39A939);
         }
         else if (loop == 2) {
             bmListView.getChildAt(pos).setBackgroundColor(Color.TRANSPARENT);

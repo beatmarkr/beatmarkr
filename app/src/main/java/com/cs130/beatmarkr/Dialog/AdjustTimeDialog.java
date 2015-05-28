@@ -2,11 +2,13 @@ package com.cs130.beatmarkr.Dialog;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
 
 import com.cs130.beatmarkr.BookmarksActivity;
+import com.cs130.beatmarkr.MusicDBContract;
 import com.cs130.beatmarkr.R;
 
 import java.util.concurrent.TimeUnit;
@@ -17,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class AdjustTimeDialog extends GenericDialog {
     View view;
     int position;
+    BookmarksActivity bmActivity;
 
     NumberPicker minutesNp;
     NumberPicker secondsNp;
@@ -25,6 +28,7 @@ public class AdjustTimeDialog extends GenericDialog {
     public AdjustTimeDialog(Activity a, int pos) {
         activity = a;
         position = pos;
+        bmActivity = (BookmarksActivity)a;
     }
 
     public void setCustomView() {
@@ -36,7 +40,7 @@ public class AdjustTimeDialog extends GenericDialog {
         millisecondsNp = (NumberPicker)view.findViewById(R.id.milliseconds);
 
         // Set the minimum and maximum values of the number picker
-        long finalTime = ((BookmarksActivity)activity).getFinalTime();
+        long finalTime = bmActivity.getFinalTime();
 
         int MIN_VALUE = 0;
 
@@ -54,7 +58,7 @@ public class AdjustTimeDialog extends GenericDialog {
         millisecondsNp.setMaxValue(MS_MAX_VALUE);
 
         // Display the current bookmark time in the number picker
-        long currTime = ((BookmarksActivity)activity).getBmList().get(position).getSeekTime();
+        long currTime = bmActivity.getBmList().get(position).getSeekTime();
 
         int min = (int)TimeUnit.MILLISECONDS.toMinutes(currTime);
         int sec = (int)(TimeUnit.MILLISECONDS.toSeconds(currTime) - TimeUnit.MINUTES.toSeconds(min));
@@ -80,18 +84,29 @@ public class AdjustTimeDialog extends GenericDialog {
                         newTime += TimeUnit.SECONDS.toMillis(secondsNp.getValue());
                         newTime += millisecondsNp.getValue();
 
-                        long finalTime = ((BookmarksActivity)activity).getFinalTime();
+                        long finalTime = bmActivity.getFinalTime();
                         
                         // The max time is the song duration
                         if (newTime > finalTime) {
                             newTime = finalTime;
                         }
-                        ((BookmarksActivity)activity).getStorage().updateBookmarkEntry(
-                                ((BookmarksActivity)activity).getBmList().get(position),
+
+                        Cursor cursor = bmActivity.getStorage().queryBookmarks(new String[]{Long.toString(bmActivity.getSong().getID())});
+                        int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+
+                        while (cursor.moveToNext()) {
+                            if (Long.valueOf(cursor.getString(index_time)) == newTime) {
+                                return; //don't create a new bookmark - can add a popup alert
+                            }
+                        }
+                        cursor.close();
+
+                        bmActivity.getStorage().updateBookmarkEntry(
+                                bmActivity.getBmList().get(position),
                                 newTime,
                                 null);
-                        ((BookmarksActivity)activity).getBmList().get(position).setSeekTime(newTime);
-                        ((BookmarksActivity)activity).update();
+                        bmActivity.getBmList().get(position).setSeekTime(newTime);
+                        bmActivity.update();
                     }
                 })
                 .setNegativeButton("Cancel", cancelButton);

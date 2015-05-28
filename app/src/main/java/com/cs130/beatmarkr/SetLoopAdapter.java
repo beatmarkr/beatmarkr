@@ -51,7 +51,6 @@ public class SetLoopAdapter extends BaseAdapter {
         // Get title and artist views
         TextView descView = (TextView)bmLayout.findViewById(R.id.bm_desc);
         TextView timeView = (TextView)bmLayout.findViewById(R.id.bm_time);
-        ImageView checkView = (ImageView)bmLayout.findViewById((R.id.bm_checkbox));
 
         // Get song using position
         Bookmark currBm = bmList.get(position);
@@ -60,12 +59,12 @@ public class SetLoopAdapter extends BaseAdapter {
         descView.setText(currBm.getDescription());
         timeView.setText(currBm.getSeekTimeString());
 
-//        if (currBm.equals(bm)) {
-//            checkView.setVisibility(View.VISIBLE);
-//        }
-//        else {
-//            checkView.setVisibility((View.INVISIBLE));
-//        }
+        if (currBm.equals(bm)) {
+            bmLayout.findViewById(R.id.loop_item).setBackgroundColor(0xFF0EA4C6);
+        }
+        else {
+            bmLayout.findViewById(R.id.loop_item).setBackgroundColor(0x000EA4C6);
+        }
 
         return bmLayout;
     }

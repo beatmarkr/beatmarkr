@@ -40,14 +40,14 @@
             android:layout_width="3dp"
             android:layout_height="fill_parent"
             android:layout_marginLeft="15dp"
-            android:background="#33CC00" />
+            android:background="#39A939" />
 
         <View
             android:id="@+id/seek_divider_2"
             android:layout_width="3dp"
             android:layout_height="fill_parent"
             android:layout_marginLeft="310dp"
-            android:background="#FF0000" />
+            android:background="#AF0B0B" />
 
         <SeekBar
             android:id="@+id/seekBar"

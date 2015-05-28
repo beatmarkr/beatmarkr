@@ -39,6 +39,11 @@ public class NameDialog extends GenericDialog {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String newDescription = bookmarkName.getText().toString();
+
+                        if (newDescription.length() > 30) {
+                            newDescription = newDescription.substring(0, 30);
+                        }
+
                         Bookmark bm = ((BookmarksActivity)activity).getBmList().get(position);
                         bm.setDescription(newDescription);
                         ((BookmarksActivity)activity).getStorage().addBookmarkEntry(bm);
