@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Bundle;
@@ -62,6 +64,12 @@ public class BookmarksActivity extends Activity {
 
     private View startDivider, endDivider;
 
+    private boolean shouldCheckLoop = true;
+    private boolean isLoopPaused = false;
+
+    private SoundPool tickSound;
+    private int tickSoundID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +95,9 @@ public class BookmarksActivity extends Activity {
         play(findViewById(android.R.id.content));
 
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        tickSound = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+        tickSoundID = tickSound.load(this, R.raw.tick, 1);
 
     }
 
@@ -120,8 +131,11 @@ public class BookmarksActivity extends Activity {
         mediaPlayer.stop();
         mediaPlayer.release();
         durationHandler.removeCallbacks(updateSeekBarTime);
+        durationHandler.removeCallbacks(resumeLoop);
         durationHandler = null;
         helper.close();
+        tickSound.stop(tickSoundID);
+        tickSound.release();
     }
 
     private void initializeViews() {
@@ -173,16 +187,21 @@ public class BookmarksActivity extends Activity {
 
     // Called when play button is pressed
     public void play(View view) {
-        mediaPlayer.start();
-        timeElapsed = mediaPlayer.getCurrentPosition();
-        seekbar.setProgress((int)timeElapsed);
-        durationHandler.postDelayed(updateSeekBarTime, 100);
+        if (!isLoopPaused) {
+            mediaPlayer.start();
+            timeElapsed = mediaPlayer.getCurrentPosition();
+            seekbar.setProgress((int) timeElapsed);
+            durationHandler.postDelayed(updateSeekBarTime, 100);
+            cancelResumeLoop();
+        }
     }
 
     // Handler to change seekBarTime
     private Runnable updateSeekBarTime = new Runnable() {
         public void run() {
-            checkLoop();
+            if (shouldCheckLoop) {
+                checkLoop();
+            }
 
             timeElapsed = mediaPlayer.getCurrentPosition();
 
@@ -194,8 +213,17 @@ public class BookmarksActivity extends Activity {
                                     TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(timeElapsed)))
             );
 
-            // Repeat yourself that again in 100 miliseconds
+            // Repeat yourself that again in 100 milliseconds
             durationHandler.postDelayed(this, 100);
+        }
+    };
+
+    private Runnable resumeLoop = new Runnable() {
+        @Override
+        public void run() {
+            playLoop();
+            shouldCheckLoop = true;
+            isLoopPaused = false;
         }
     };
 
@@ -205,11 +233,25 @@ public class BookmarksActivity extends Activity {
 
         if (timeElapsed >= bmLoopEnd.getSeekTime() - offset ||
                 timeElapsed < bmLoopStart.getSeekTime() - offset) {
-            playLoop();
+
+            mediaPlayer.pause();
+            shouldCheckLoop = false;
+            isLoopPaused = true;
+
+            int gapInterval = Integer.parseInt(sharedPref.getString(SettingsActivity.KEY_PREF_GAP_INTERVAL, "5"));
+            boolean gapSound = sharedPref.getBoolean(SettingsActivity.KEY_PREF_GAP_SOUND, true);
+
+            durationHandler.postDelayed(resumeLoop, gapInterval*1000);
+
+            if (gapSound) {
+                tickSound.play(tickSoundID, 1, 1, 0, gapInterval, 0.99f);
+            }
         }
     }
 
     private void playLoop() {
+        tickSound.autoPause();
+        tickSound.stop(tickSoundID);
         mediaPlayer.stop();
 
         try {
@@ -224,32 +266,37 @@ public class BookmarksActivity extends Activity {
 
     // Called when pause button is pressed
     public void pause(View view) {
-        mediaPlayer.pause();
+        if (!isLoopPaused) {
+            mediaPlayer.pause();
+        }
     }
 
     // Called when forward button is pressed
     public void forward(View view) {
-        // Check if we can go forward at forwardTime seconds before song ends
-        if ((timeElapsed + forwardTime) <= finalTime) {
-            timeElapsed = timeElapsed + forwardTime;
+        if (!isLoopPaused) {
+            // Check if we can go forward at forwardTime seconds before song ends
+            if ((timeElapsed + forwardTime) <= finalTime) {
+                timeElapsed = timeElapsed + forwardTime;
 
-            // Seek to the exact second of the track
-            mediaPlayer.seekTo((int)timeElapsed);
+                // Seek to the exact second of the track
+                mediaPlayer.seekTo((int) timeElapsed);
+            }
         }
     }
 
     // Called when backward button is pressed
     public void rewind(View view) {
-        // Check if we go back to beginning of song
-        if ((timeElapsed - backwardTime) <= 0) {
-            timeElapsed = 0;
-        }
-        else {
-            timeElapsed = timeElapsed - backwardTime;
-        }
+        if (!isLoopPaused) {
+            // Check if we go back to beginning of song
+            if ((timeElapsed - backwardTime) <= 0) {
+                timeElapsed = 0;
+            } else {
+                timeElapsed = timeElapsed - backwardTime;
+            }
 
-        // Seek to the exact second of the track
-        mediaPlayer.seekTo((int) timeElapsed);
+            // Seek to the exact second of the track
+            mediaPlayer.seekTo((int) timeElapsed);
+        }
     }
 
     // Called when edit button is pressed
@@ -306,45 +353,46 @@ public class BookmarksActivity extends Activity {
     // Called when add button is pressed
     // If user attempts to create bookmark with same timestamp, it will silently ignore the attempt.
     public void newBookmark(View view) {
-        int bmTime = mediaPlayer.getCurrentPosition();
-        boolean namePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_NAME, true);
+        if (!isLoopPaused) {
+            int bmTime = mediaPlayer.getCurrentPosition();
+            boolean namePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_NAME, true);
 
-        Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
-        int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
+            Cursor cursor = helper.queryBookmarks(new String[]{Long.toString(song.getID())});
+            int index_time = cursor.getColumnIndex(MusicDBContract.BookmarkEntry.COLUMN_TIME);
 
-        while (cursor.moveToNext()) {
-            if (Long.valueOf(cursor.getString(index_time)) == bmTime) {
-                return; //don't create a new bookmark - can add a popup alert
-            }
-        }
-        cursor.close();
-
-        // Check settings for auto-generating bookmark names
-        if (namePref) {
-            Bookmark bm = new Bookmark(song.getID(), bmTime, "Bookmark-" + (bmList.size() + 1));
-            bmList.add(bm);
-            helper.addBookmarkEntry(bm);
-            update();
-
-            int position = bmList.size()-1;
-
-            // Scroll the list to the bookmark's new position
-            for (Bookmark b : bmList) {
-                if (b.equals(bm)) {
-                    position = bmList.indexOf(b);
-                    break;
+            while (cursor.moveToNext()) {
+                if (Long.valueOf(cursor.getString(index_time)) == bmTime) {
+                    return; //don't create a new bookmark - can add a popup alert
                 }
             }
+            cursor.close();
 
-            bmListView.setSelection(position);
-        }
-        else {
-            pause(findViewById(android.R.id.content));
-            bmList.add(new Bookmark(song.getID(), bmTime, ""));
-            int position = bmList.size()-1;
+            // Check settings for auto-generating bookmark names
+            if (namePref) {
+                Bookmark bm = new Bookmark(song.getID(), bmTime, "Bookmark-" + (bmList.size() + 1));
+                bmList.add(bm);
+                helper.addBookmarkEntry(bm);
+                update();
 
-            NameDialog name = new NameDialog(this, position);
-            name.createDialog();
+                int position = bmList.size() - 1;
+
+                // Scroll the list to the bookmark's new position
+                for (Bookmark b : bmList) {
+                    if (b.equals(bm)) {
+                        position = bmList.indexOf(b);
+                        break;
+                    }
+                }
+
+                bmListView.setSelection(position);
+            } else {
+                pause(findViewById(android.R.id.content));
+                bmList.add(new Bookmark(song.getID(), bmTime, ""));
+                int position = bmList.size() - 1;
+
+                NameDialog name = new NameDialog(this, position);
+                name.createDialog();
+            }
         }
     }
 
@@ -379,6 +427,8 @@ public class BookmarksActivity extends Activity {
         seekbar.setSecondaryProgress(startMarkerPos);
 
         //setIndicatorInList(0,bmLoopStart);
+
+        playLoop();
     }
 
     // Called when selecting end of the loop
@@ -433,8 +483,10 @@ public class BookmarksActivity extends Activity {
 
     // Called when set loop button is pressed
     public void setLoop(View view) {
-        StartLoopDialog startLoop = new StartLoopDialog(this);
-        startLoop.createDialog();
+        if (!isLoopPaused) {
+            StartLoopDialog startLoop = new StartLoopDialog(this);
+            startLoop.createDialog();
+        }
     }
 
     // Getter method to use in dialogs
@@ -481,6 +533,10 @@ public class BookmarksActivity extends Activity {
         else if (loop == 2) {
             bmListView.getChildAt(pos).setBackgroundColor(Color.TRANSPARENT);
         }
+    }
 
+    private void cancelResumeLoop() {
+        durationHandler.removeCallbacks(resumeLoop);
+        shouldCheckLoop = true;
     }
 }
