@@ -218,16 +218,17 @@ public class BookmarksActivity extends Activity {
 
         if (timeElapsed >= bmLoopEnd.getSeekTime() - offset ||
                 timeElapsed < bmLoopStart.getSeekTime() - offset) {
-            mediaPlayer.pause();
-            /*Runnable r = new Runnable() {
+
+
+            mediaPlayer.pause(); //pause the player at the end of the loop
+            Runnable r = new Runnable() { //generate runnable
                 @Override
                 public void run() {
                     try {
                         // to sleep 10 seconds
                         Thread.sleep(5000);
-                        //playLoop();
+                        playLoop(); //breaks because start of loop breaks all the time
                         //mediaPlayer.seekTo((int) bmLoopStart.getSeekTime());
-                        mediaPlayer.start();
                     } catch (InterruptedException e) {
                         // recommended because catching InterruptedException clears interrupt flag
                         Thread.currentThread().interrupt();
@@ -237,7 +238,7 @@ public class BookmarksActivity extends Activity {
             };
 
             Thread t = new Thread(r);
-            t.start();*/
+            t.start();
             /*Thread thread = new Thread() {
                 @Override
                 public void run() {
@@ -264,8 +265,8 @@ public class BookmarksActivity extends Activity {
                 playLoop();
                }
             }, 4, TimeUnit.SECONDS);*/
-            reSched(5000);
-            //playLoop();
+            //reSched(5000);
+
         }
     }
 
