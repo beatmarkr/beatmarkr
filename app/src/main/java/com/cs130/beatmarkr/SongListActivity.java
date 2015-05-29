@@ -8,9 +8,13 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.cs130.beatmarkr.Settings.SettingsActivity;
@@ -23,6 +27,7 @@ import java.util.Comparator;
 public class SongListActivity extends Activity {
     private static ArrayList<Song> songList; //List of songs displayed in alphabetical order
     private ListView songView;
+    private ArrayList<Integer> positions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +49,49 @@ public class SongListActivity extends Activity {
         SongAdapter songAdt = new SongAdapter(this, songList);
         songView.setAdapter(songAdt);
 
+        positions = new ArrayList<Integer>();
+        for (int i = 0; i < songList.size(); i++) {
+            positions.add(i);
+        }
+
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
+        EditText filterView = (EditText)findViewById(R.id.song_filter);
+        filterView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // none
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                ArrayList<Song> filteredSongs = new ArrayList<Song>();
+                String filter = s.toString().toLowerCase();
+                Song song;
+                positions = new ArrayList<Integer>();
+
+                for (int i = 0; i < songList.size(); i++) {
+                    song = songList.get(i);
+                    if (song.getTitle().toString().toLowerCase().contains(filter)) {
+                        filteredSongs.add(song);
+                        positions.add(i);
+                    } else if (song.getArtist().toString().toLowerCase().contains(filter)) {
+                        filteredSongs.add(song);
+                        positions.add(i);
+                    }
+                }
+
+                songView.setAdapter(new SongAdapter(SongListActivity.this, filteredSongs));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // none
+            }
+        });
+
+        // Don't show the keyboard automatically
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
     @Override
@@ -74,7 +121,8 @@ public class SongListActivity extends Activity {
     // Called when selecting a song from the list
     public void songPicked(View view) {
         Intent intent = new Intent(this, BookmarksActivity.class);
-        intent.putExtra("KEY_SONG_POS", Integer.parseInt(view.getTag().toString()));
+        int songPos = positions.get(Integer.parseInt(view.getTag().toString()));
+        intent.putExtra("KEY_SONG_POS", songPos);
         startActivity(intent);
     }
 

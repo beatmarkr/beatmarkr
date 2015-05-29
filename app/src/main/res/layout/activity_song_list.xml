@@ -18,6 +18,12 @@
         android:paddingBottom="@dimen/abc_action_bar_icon_vertical_padding_material"
         android:elegantTextHeight="false" />
 
+    <EditText android:id="@+id/song_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search Songs"
+        android:inputType="text" />
+
     <ListView android:id="@+id/song_list"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
