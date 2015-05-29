@@ -3,33 +3,39 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.cs130.beatmarkr.BookmarksActivity">
 
     <ListView android:id="@+id/bm_list"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.77"
         style="@style/AppTheme"
-        android:theme="@style/AppTheme"
-        android:listSelector="@color/accent_material_dark"
-        android:divider="@android:color/holo_blue_dark"
-        android:dividerHeight="1dp" />
+        android:divider="@color/grey_highlight"
+        android:dividerHeight="0.5dp"
+        android:layout_weight="0.5" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="1dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/blue_highlight"></View>
 
     <TextView android:id="@+id/songName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="songName" />
+        android:text="songName"
+        android:paddingTop="5dp"
+        android:textColor="@color/abc_primary_text_material_dark"
+        android:textSize="18sp" />
 
     <TextView android:id="@+id/songDuration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="songDuration" />
+        android:text="songDuration"
+        android:textColor="@color/abc_secondary_text_material_dark"
+        android:textSize="14sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -40,14 +46,14 @@
             android:layout_width="3dp"
             android:layout_height="fill_parent"
             android:layout_marginLeft="15dp"
-            android:background="#39A939" />
+            android:background="@color/start_bm" />
 
         <View
             android:id="@+id/seek_divider_2"
             android:layout_width="3dp"
             android:layout_height="fill_parent"
-            android:layout_marginLeft="310dp"
-            android:background="#AF0B0B" />
+            android:layout_marginLeft="340dp"
+            android:background="@color/end_bm" />
 
         <SeekBar
             android:id="@+id/seekBar"
@@ -64,61 +70,108 @@
 
     <LinearLayout android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
 
         <ImageView android:id="@+id/media_new"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:onClick="newBookmark"
-            android:src="@drawable/ic_action_new"
-            android:padding="5dp" />
+            android:src="@drawable/new_selector"
+            android:contentDescription="new bookmark button"
+            android:paddingRight="10dp" />
 
         <ImageView android:id="@+id/media_rew"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:onClick="rewind"
-            android:src="@drawable/ic_action_rewind"
-            android:padding="5dp" />
+            android:src="@drawable/rewind_selector"
+            android:contentDescription="rewind button"
+            android:paddingRight="10dp" />
 
         <ImageView android:id="@+id/media_pause"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:onClick="pause"
-            android:src="@drawable/ic_action_pause"
-            android:padding="5dp" />
+            android:src="@drawable/pause_selector"
+            android:contentDescription="pause button"
+            android:paddingRight="10dp" />
 
         <ImageView android:id="@+id/media_play"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:onClick="play"
-            android:src="@drawable/ic_action_play"
-            android:padding="5dp" />
+            android:src="@drawable/play_selector"
+            android:contentDescription="play button"
+            android:paddingRight="10dp" />
 
         <ImageView android:id="@+id/media_ff"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:onClick="forward"
-            android:src="@drawable/ic_action_fast_forward"
-            android:padding="5dp" />
+            android:src="@drawable/forward_selector"
+            android:contentDescription="fast forward button"
+            android:paddingRight="10dp" />
     </LinearLayout>
 
-    <TextView android:id="@+id/bm_loop_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="90dp"
+        android:gravity="center_vertical|center_horizontal">
 
-    <TextView android:id="@+id/bm_loop_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="110dp"
+            android:layout_height="fill_parent"
+            android:gravity="center_vertical|right"
+            android:paddingRight="10dp">
 
-    <Button android:id="@+id/setLoop_button"
-        android:text="Set Loop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="setLoop" />
+            <TextView android:id="@+id/bm_loop_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="START"
+                android:textColor="@color/start_bm"
+                android:textStyle="bold" />
+
+            <TextView android:id="@+id/bm_loop_start_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="@color/start_bm"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <Button android:id="@+id/setLoop_button"
+            android:text="Set Loop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="setLoop" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="110dp"
+            android:layout_height="fill_parent"
+            android:gravity="left|center_vertical"
+            android:paddingLeft="10dp">
+
+            <TextView android:id="@+id/bm_loop_end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="END"
+                android:textColor="@color/end_bm"
+                android:textStyle="bold" />
+
+            <TextView android:id="@+id/bm_loop_end_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textColor="@color/end_bm"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
