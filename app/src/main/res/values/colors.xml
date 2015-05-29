@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="blue_highlight" type="color">#ff33b5e5</item>
+    <item name="grey_highlight" type="color">#ffa9a9a9</item>
+    <item name="end_bm" type="color">#FFAF0B0B</item>
+    <item name="end_bm_push" type="color">#ffaf797a</item>
+    <item name="start_bm" type="color">#FF39A939</item>
+    <item name="start_bm_push" type="color">#ff95a994</item>
+</resources>

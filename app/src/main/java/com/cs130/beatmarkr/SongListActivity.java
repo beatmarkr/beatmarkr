@@ -8,9 +8,15 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ListView;
 
 import com.cs130.beatmarkr.Settings.SettingsActivity;
@@ -22,6 +28,7 @@ import java.util.Comparator;
 
 public class SongListActivity extends Activity {
     private static ArrayList<Song> songList; //List of songs displayed in alphabetical order
+    private static ArrayList<Song> filteredSongs;
     private ListView songView;
 
     @Override
@@ -31,6 +38,7 @@ public class SongListActivity extends Activity {
 
         songView = (ListView)findViewById(R.id.song_list);
         songList = new ArrayList<Song>();
+        filteredSongs = new ArrayList<Song>();
 
         getSongs();
 
@@ -41,7 +49,8 @@ public class SongListActivity extends Activity {
             }
         });
 
-        SongAdapter songAdt = new SongAdapter(this, songList);
+        filteredSongs = songList;
+        final SongAdapter songAdt = new SongAdapter(this, filteredSongs);
         songView.setAdapter(songAdt);
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);

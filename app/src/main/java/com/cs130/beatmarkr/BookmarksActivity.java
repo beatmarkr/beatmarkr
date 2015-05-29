@@ -34,8 +34,11 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.RelativeLayout;
 
+import org.w3c.dom.Text;
+
 public class BookmarksActivity extends Activity {
-    private TextView songName, duration, bmLoopStartText, bmLoopEndText;
+    private TextView songName, duration;
+    private TextView bmLoopStartText, bmLoopEndText, bmLoopStartTime, bmLoopEndTime;
     private Song song;
     private int songPos;
     private MediaPlayer mediaPlayer;
@@ -79,10 +82,17 @@ public class BookmarksActivity extends Activity {
         bmLoopStart = bmList.get(0);
         bmLoopEnd = bmList.get(bmList.size()-1);
 
+        // Get text views for loop
         bmLoopStartText = (TextView)findViewById(R.id.bm_loop_start);
         bmLoopEndText = (TextView)findViewById(R.id.bm_loop_end);
-        bmLoopStartText.setText("START: " + bmLoopStart.getDescription() + " " + bmLoopStart.getSeekTimeString());
-        bmLoopEndText.setText("END: " + bmLoopEnd.getDescription() + " " + bmLoopEnd.getSeekTimeString());
+        bmLoopStartTime = (TextView)findViewById(R.id.bm_loop_start_time);
+        bmLoopEndTime = (TextView)findViewById(R.id.bm_loop_end_time);
+
+        // Set text views for loop
+        bmLoopStartText.setText(bmLoopStart.getDescription());
+        bmLoopStartTime.setText(bmLoopStart.getSeekTimeString());
+        bmLoopEndText.setText(bmLoopEnd.getDescription());
+        bmLoopEndTime.setText(bmLoopEnd.getSeekTimeString());
 
         play(findViewById(android.R.id.content));
 
@@ -364,7 +374,8 @@ public class BookmarksActivity extends Activity {
         }
 
         bmLoopStart = bm;
-        bmLoopStartText.setText("START: " + bmLoopStart.getDescription() + " " + bmLoopStart.getSeekTimeString());
+        bmLoopStartText.setText(bmLoopStart.getDescription());
+        bmLoopStartTime.setText(bmLoopStart.getSeekTimeString());
         //update start of loop indicator
         seekbarWidth = seekbar.getWidth() - seekbar.getPaddingLeft() - seekbar.getPaddingRight();
         startMarkerPos = ((int)bmLoopStart.getSeekTime() * seekbarWidth /mediaPlayer.getDuration())+ seekbar.getPaddingLeft();
@@ -385,7 +396,8 @@ public class BookmarksActivity extends Activity {
         }
 
         bmLoopEnd = bm;
-        bmLoopEndText.setText("END: " + bmLoopEnd.getDescription() + " " + bmLoopEnd.getSeekTimeString());
+        bmLoopEndText.setText(bmLoopEnd.getDescription());
+        bmLoopEndTime.setText(bmLoopEnd.getSeekTimeString());
         //update end of loop indicator
         seekbarWidth = seekbar.getWidth() - seekbar.getPaddingLeft() - seekbar.getPaddingRight();
         endMarkerPos = ((int)bmLoopEnd.getSeekTime() * seekbarWidth /mediaPlayer.getDuration())+ seekbar.getPaddingLeft();
@@ -407,8 +419,10 @@ public class BookmarksActivity extends Activity {
         });
 
         bmAdt.notifyDataSetChanged();
-        bmLoopStartText.setText("START: " + bmLoopStart.getDescription() + " " + bmLoopStart.getSeekTimeString());
-        bmLoopEndText.setText("END: " + bmLoopEnd.getDescription() + " " + bmLoopEnd.getSeekTimeString());
+        bmLoopStartText.setText(bmLoopStart.getDescription());
+        bmLoopStartTime.setText(bmLoopStart.getSeekTimeString());
+        bmLoopEndText.setText(bmLoopEnd.getDescription());
+        bmLoopEndTime.setText(bmLoopEnd.getSeekTimeString());
     }
 
     // Getter method to use in dialogs
@@ -460,15 +474,14 @@ public class BookmarksActivity extends Activity {
             }
         }
         cursor.close();
-        if (loop == 1) {
-            bmListView.getChildAt(pos).setBackgroundColor(Color.RED);
+        if (loop == 0) {
+            bmListView.getChildAt(pos).setBackgroundResource(R.drawable.start_selector);
         }
-        else if (loop == 0) {
-            bmListView.getChildAt(pos).setBackgroundColor(Color.GREEN);
+        else if (loop == 1) {
+            bmListView.getChildAt(pos).setBackgroundResource(R.drawable.end_selector);
         }
         else if (loop == 2) {
-            bmListView.getChildAt(pos).setBackgroundColor(Color.TRANSPARENT);
+            bmListView.getChildAt(pos).setBackgroundResource(R.drawable.song_selector);
         }
-
     }
 }
