@@ -131,7 +131,7 @@ public class BookmarksActivity extends Activity {
         durationHandler = null;
         helper.close();
         if (soundCount != null) {
-            soundCount.stop();
+            //soundCount.stop();
             soundCount.release();
         }
     }
@@ -248,9 +248,9 @@ public class BookmarksActivity extends Activity {
     }
 
     private void playLoop() {
-        if (soundCount != null) {
-            soundCount.stop();
-        }
+//        if (soundCount != null && soundCount.isPlaying()) {
+//            soundCount.stop();
+//        }
         mediaPlayer.stop();
 
         try {
@@ -585,7 +585,9 @@ public class BookmarksActivity extends Activity {
                 }
             });
 
-            soundCount.start();
+            if (number != 0) {
+                soundCount.start();
+            }
         }
     }
 }
